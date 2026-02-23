@@ -258,7 +258,6 @@ def login_page() -> rx.Component:
                     rx.callout(State.error_mensaje, icon="triangle-alert", color_scheme="red", variant="surface", width="100%", margin_top="1em"),
                 ),
                 rx.button("Entrar", on_click=State.iniciar_sesion, size="4", width="100%", margin_top="2em", cursor="pointer", background_color="#4f46e5", color="white"),
-                rx.button("Generar Usuario Demo", on_click=State.crear_usuario_prueba, variant="ghost", color="#6b7280", margin_top="1em", size="2"),
                 padding="2em", align="center", width="100%"
             ),
             size="4", max_width="400px", background_color="white", border="1px solid #e5e7eb", box_shadow="xl"
@@ -290,4 +289,101 @@ def index_page() -> rx.Component:
             overflow="auto"
         ),
         width="100%"
+    )
+
+def landing_page() -> rx.Component:
+    return rx.center(
+        rx.vstack(
+            rx.heading(
+                "Bienvenido a PatternLab", 
+                size="9", 
+                color="#111827", 
+                margin_bottom="0.2em",
+                weight="bold"
+            ),
+            rx.text(
+                "La plataforma educativa para dominar patrones de diseño.", 
+                size="5", 
+                color="#374151",
+                text_align="center"
+            ),
+            rx.hstack(
+                rx.link(
+                    rx.button(
+                        "Iniciar Sesión", 
+                        size="4", 
+                        color_scheme="indigo",
+                        cursor="pointer"
+                    ), 
+                    href="/login"
+                ),
+                rx.link(
+                    rx.button(
+                        "Registrarse", 
+                        size="4", 
+                        variant="outline",
+                        color_scheme="indigo",
+                        cursor="pointer"
+                    ), 
+                    href="/register"
+                ),
+                spacing="4",
+                margin_top="2.5em"
+            ),
+            align="center",
+            padding="2em",
+        ),
+        height="100vh",
+        background="linear-gradient(135deg, #f5f7ff 0%, #ffffff 100%)"
+    )
+
+def register_page() -> rx.Component:
+    return rx.center(
+        rx.card(
+            rx.vstack(
+                rx.heading("Registro de Estudiante", size="7", color="#111827", weight="bold"),
+                rx.text("Crea tu cuenta para empezar a aprender", color="#6b7280", size="2", margin_bottom="1.5em"),
+                
+                rx.vstack(
+                    rx.input(
+                        placeholder="Nombre Completo", 
+                        on_change=State.set_nombre_input, 
+                        width="100%", color="#111827", variant="surface"
+                    ),
+                    rx.input(
+                        placeholder="Correo Electrónico", 
+                        on_change=State.set_correo_input, 
+                        width="100%", color="#111827", variant="surface"
+                    ),
+                    rx.input(
+                        type="password", 
+                        placeholder="Contraseña", 
+                        on_change=State.set_pass_input, 
+                        width="100%", color="#111827", variant="surface"
+                    ),
+                    spacing="3",
+                    width="100%"
+                ),
+
+                rx.cond(
+                    State.error_mensaje != "",
+                    rx.text(State.error_mensaje, color="#ef4444", size="2", weight="medium")
+                ),
+                
+                rx.button(
+                    "Crear Cuenta", 
+                    on_click=State.registrar_usuario, 
+                    width="100%", color_scheme="indigo", margin_top="1em", cursor="pointer"
+                ),
+                
+                rx.link(
+                    "¿Ya tienes cuenta? Inicia sesión", 
+                    href="/login", size="2", color="#4f46e5", margin_top="1em"
+                ),
+                align="center",
+                width="100%"
+            ),
+            padding="2.5em", width="400px", background_color="white", box_shadow="xl"
+        ),
+        height="100vh", background_color="#f3f4f6"
     )

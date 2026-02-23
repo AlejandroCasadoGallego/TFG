@@ -6,5 +6,6 @@ config = rx.Config(
         rx.plugins.SitemapPlugin(),
         rx.plugins.TailwindV4Plugin(),
     ],
+    #db_url="sqlite:///reflex.db"
     db_url="mysql+pymysql://root:@localhost:3306/sistema_tareas"
 )
