@@ -1,0 +1,13 @@
+.web
+*.py[cod]
+*.db
+assets/external/
+__pycache__/
+.states
+
+# Indispensables:
+.venv/
+venv/
+env/
+.env
+.DS_Store
