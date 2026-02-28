@@ -10,15 +10,13 @@ if TYPE_CHECKING:
 # PAQUETE: G. DE USUARIOS
 # =======================================================
 
-class Usuario(rx.Model, table=True):
-    """Clase base para todos los usuarios."""
-    id_usuario: Optional[int] = sqlmodel.Field(default=None, primary_key=True)
-    
-    nombreUsuario: str = sqlmodel.Field(max_length=100)
-    contraseñaHash: str = sqlmodel.Field(max_length=255)
-    correo: str = sqlmodel.Field(unique=True, max_length=150)
-    fechaRegistro: datetime = sqlmodel.Field(default_factory=datetime.now)
-    rol: str = sqlmodel.Field(default="estudiante") # Valores: 'admin', 'docente', 'estudiante'
+class Usuario(sqlmodel.SQLModel, table=True):
+    id_usuario: int | None = sqlmodel.Field(default=None, primary_key=True)
+    nombreUsuario: str
+    correo: str = sqlmodel.Field(unique=True)
+    contraseñaHash: str
+    rol: str
+    activo: bool = sqlmodel.Field(default=True)
 
 class EstudianteGrupo(rx.Model, table=True):
     """Tabla intermedia N:M"""

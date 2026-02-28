@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 177d1233526c
+Revision ID: e94b200bcfbc
 Revises: 
-Create Date: 2026-02-19 21:54:08.243679
+Create Date: 2026-02-25 19:51:02.696031
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 import sqlmodel
 
 # revision identifiers, used by Alembic.
-revision: str = '177d1233526c'
+revision: str = 'e94b200bcfbc'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -35,11 +35,11 @@ def upgrade() -> None:
     )
     op.create_table('usuario',
     sa.Column('id_usuario', sa.Integer(), nullable=False),
-    sa.Column('nombreUsuario', sqlmodel.sql.sqltypes.AutoString(length=100), nullable=False),
-    sa.Column('contraseñaHash', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=False),
-    sa.Column('correo', sqlmodel.sql.sqltypes.AutoString(length=150), nullable=False),
-    sa.Column('fechaRegistro', sa.DateTime(), nullable=False),
+    sa.Column('nombreUsuario', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('correo', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('contraseñaHash', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('rol', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('activo', sa.Boolean(), nullable=False),
     sa.PrimaryKeyConstraint('id_usuario'),
     sa.UniqueConstraint('correo')
     )
