@@ -8,7 +8,6 @@ from ..models.patrones import PatronDiseño
 class EditPatternState(BaseState):
     """Maneja el formulario para editar un patrón existente."""
     
-    # Variables del formulario pre-rellenadas
     edit_nombre: str = ""
     edit_categoria: str = ""
     edit_descripcion: str = ""
@@ -21,7 +20,6 @@ class EditPatternState(BaseState):
     error_edicion: str = ""
 
     def cargar_datos(self):
-        """Carga los datos del patrón desde la BD para rellenar el formulario."""
         id_url = self.router.page.params.get("id_patron", "")
         if not id_url:
             return
@@ -40,7 +38,6 @@ class EditPatternState(BaseState):
                 self.error_edicion = ""
 
     async def guardar_cambios(self, files: list[rx.UploadFile]):
-        """Actualiza el patrón en la base de datos."""
         if not self.edit_nombre.strip() or not self.edit_descripcion.strip():
             self.error_edicion = "El nombre y la descripción son obligatorios."
             return
@@ -51,7 +48,6 @@ class EditPatternState(BaseState):
 
         cadena_base64_imagen = ""
         
-        # 1. Si el usuario ha subido una NUEVA imagen, la procesamos
         if files:
             upload_data = await files[0].read()
             nombre_archivo = files[0].filename
@@ -60,12 +56,9 @@ class EditPatternState(BaseState):
                 mime_type = "image/png"
             img_base64 = base64.b64encode(upload_data).decode('utf-8')
             cadena_base64_imagen = f"data:{mime_type};base64,{img_base64}"
-
-        # 2. Actualizamos la base de datos
         with rx.session() as session:
             patron = session.exec(sqlmodel.select(PatronDiseño).where(PatronDiseño.id_patron == int(id_url))).first()
             if patron:
-                # Comprobamos que el nuevo nombre no choque con otro patrón (excluyendo el actual)
                 existente = session.exec(sqlmodel.select(PatronDiseño).where((PatronDiseño.nombre == self.edit_nombre.strip()) & (PatronDiseño.id_patron != int(id_url)))).first()
                 if existente:
                     self.error_edicion = "Ya existe otro patrón con este nombre."
@@ -80,17 +73,13 @@ class EditPatternState(BaseState):
                 patron.ejemplos = self.edit_ejemplos.strip()
                 
                 if cadena_base64_imagen:
-                    # Si subió un archivo nuevo, lo guardamos
                     patron.diagrama = cadena_base64_imagen
                 elif self.diagrama_actual == "/placeholder.png":
-                    # Si no subió nada nuevo, pero la imagen actual es el placeholder 
-                    # (porque le dio al botón de borrar o porque ya estaba vacía), lo guardamos
                     patron.diagrama = "/placeholder.png"
                     
                 session.add(patron)
                 session.commit()
 
-        # 3. Limpiamos la caja de archivos y redirigimos AL DETALLE DEL PATRÓN
         return [
             rx.clear_selected_files("upload_diagrama_edit"),
             rx.redirect(f"/patron/{id_url}")

@@ -2,10 +2,6 @@ import reflex as rx
 from ..state.base_state import BaseState
 from .ui_elements import sidebar_item
 
-# =======================================================
-# MENÚS ESPECÍFICOS POR ROL
-# =======================================================
-
 def menu_estudiante():
     return rx.vstack(
         rx.text("GESTIÓN ACADÉMICA", size="1", weight="bold", color="#9ca3af", margin_top="1em", padding_left="1em"),
@@ -59,10 +55,6 @@ def menu_administrador():
         width="100%",
         spacing="1"
     )
-
-# =======================================================
-# COMPONENTES DE ESTRUCTURA
-# =======================================================
 
 def header_component(titulo: str = "Panel de Control")-> rx.Component:
     return rx.hstack(
@@ -141,7 +133,6 @@ def sidebar_layout() -> rx.Component:
     )
 
 def public_header() -> rx.Component:
-    """Cabecera superior para visitantes no logueados."""
     return rx.hstack(
         rx.link(
             rx.hstack(

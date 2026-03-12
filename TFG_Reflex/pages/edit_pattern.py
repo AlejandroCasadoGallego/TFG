@@ -10,14 +10,12 @@ def edit_pattern_page() -> rx.Component:
             rx.vstack(
                 header_component(titulo=""),
                 
-                # Cabecera
                 rx.hstack(
                     rx.vstack(
                         rx.heading("Modificar Patrón", size="8", weight="bold", color="#111827"),
                         rx.text("Edita los detalles de este patrón de diseño.", color="#6b7280", size="3"),
                     ),
                     rx.spacer(),
-                    # Botón para cancelar y volver al detalle
                     rx.button(
                         rx.icon("arrow-left", size=18), "Cancelar", 
                         on_click=rx.redirect(f"/patron/{EditPatternState.router.page.params.get('id_patron', '')}"), 
@@ -26,7 +24,6 @@ def edit_pattern_page() -> rx.Component:
                     width="100%", align="center", margin_bottom="2em"
                 ),
                 
-                # Formulario
                 rx.card(
                     rx.vstack(
                         rx.grid(
@@ -54,7 +51,6 @@ def edit_pattern_page() -> rx.Component:
                             width="100%", margin_top="1em"
                         ),
 
-                        # ZONA DE IMAGEN (Muestra la actual y permite subir una nueva)
                         rx.vstack(
                             rx.text("Diagrama UML (Imagen)", weight="bold", size="2", color="#374151"),
                             rx.hstack(
@@ -62,7 +58,6 @@ def edit_pattern_page() -> rx.Component:
                                     rx.text("Imagen Actual:", size="1", color="#6b7280"),
                                     rx.image(src=EditPatternState.diagrama_actual, height="120px", border_radius="8px", border="1px solid #e5e7eb", object_fit="contain"),
                                     
-                                    # --- NUEVO: BOTÓN PARA BORRAR LA IMAGEN ACTUAL ---
                                     rx.cond(
                                         EditPatternState.diagrama_actual != "/placeholder.png",
                                         rx.button(

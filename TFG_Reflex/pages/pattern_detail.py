@@ -1,17 +1,14 @@
-# pages/pattern_detail.py
 import reflex as rx
 from ..state.base_state import BaseState
 from ..state.pattern_detail_state import PatternDetailState
 from ..components.layout import sidebar_layout, header_component, public_header
 
-# --- COMPONENTES AUXILIARES ---
 
 def badge_categoria_detalle(categoria: str) -> rx.Component:
     color = rx.match(categoria, ("Creacionales", "green"), ("Estructurales", "blue"), ("De Comportamiento", "orange"), "gray")
     return rx.badge(categoria, color_scheme=color, variant="soft", size="2")
 
 def miniatura_clicable(ruta_imagen: str) -> rx.Component:
-    """Crea una miniatura que, al clicar, abre la imagen en grande (Lightbox)."""
     return rx.dialog.root(
         rx.dialog.trigger(
             rx.box(
@@ -39,7 +36,6 @@ def panel_teoria() -> rx.Component:
 
 def panel_analisis() -> rx.Component:
     return rx.grid(
-        # Condición: Solo muestra la tarjeta de Ventajas si hay texto
         rx.cond(
             PatternDetailState.patron_actual["ventajas"] != "",
             rx.card(
@@ -47,7 +43,6 @@ def panel_analisis() -> rx.Component:
                 background_color="#f0fdf4", border="1px solid #bbf7d0", width="100%"
             )
         ),
-        # Condición: Solo muestra la tarjeta de Desventajas si hay texto
         rx.cond(
             PatternDetailState.patron_actual["desventajas"] != "",
             rx.card(
@@ -60,7 +55,6 @@ def panel_analisis() -> rx.Component:
 
 def panel_implementacion() -> rx.Component:
     return rx.vstack(
-        # Condición: Mostrar ejemplos solo si existen
         rx.cond(
             PatternDetailState.patron_actual["ejemplos"] != "",
             rx.vstack(
@@ -69,7 +63,6 @@ def panel_implementacion() -> rx.Component:
                 width="100%", align_items="start"
             )
         ),
-        # Condición: Mostrar pseudocódigo solo si existe
         rx.cond(
             PatternDetailState.patron_actual["pseudocodigo"] != "",
             rx.vstack(
@@ -92,8 +85,6 @@ def panel_implementacion() -> rx.Component:
         width="100%", padding="2em", background_color="white", border="1px solid #e5e7eb", border_radius="8px", border_top_left_radius="0"
     )
 
-# --- VISTA PRINCIPAL ---
-
 def contenido_detalle() -> rx.Component:
     return rx.cond(
         PatternDetailState.error_carga,
@@ -103,7 +94,6 @@ def contenido_detalle() -> rx.Component:
             
             rx.hstack(
                 rx.hstack(
-                    # Condición: Mostrar miniatura SOLO si hay diagrama y no es el placeholder
                     rx.cond(
                         (PatternDetailState.patron_actual["diagrama"] != "") & (PatternDetailState.patron_actual["diagrama"] != "/placeholder.png"),
                         miniatura_clicable(PatternDetailState.patron_actual["diagrama"])
@@ -135,16 +125,13 @@ def contenido_detalle() -> rx.Component:
                 width="100%", align="center", margin_bottom="2em", flex_wrap="wrap", gap="4"
             ),
             
-            # 3. PESTAÑAS (TABS) DINÁMICAS
             rx.tabs.root(
                 rx.tabs.list(
-                    # La pestaña de concepto SIEMPRE se muestra (es obligatoria)
                     rx.tabs.trigger(
                         rx.hstack(rx.icon("book-text", size=18, color="#374151"), rx.text("Concepto y Teoría", color="#374151", weight="bold")), 
                         value="concepto", cursor="pointer"
                     ),
                     
-                    # Condición Pestaña 2: Mostrar si Ventajas O Desventajas no están vacíos
                     rx.cond(
                         (PatternDetailState.patron_actual["ventajas"] != "") | (PatternDetailState.patron_actual["desventajas"] != ""),
                         rx.tabs.trigger(
@@ -153,7 +140,6 @@ def contenido_detalle() -> rx.Component:
                         )
                     ),
                     
-                    # Condición Pestaña 3: Mostrar si Ejemplos O Pseudocódigo no están vacíos
                     rx.cond(
                         (PatternDetailState.patron_actual["ejemplos"] != "") | (PatternDetailState.patron_actual["pseudocodigo"] != ""),
                         rx.tabs.trigger(
@@ -164,7 +150,6 @@ def contenido_detalle() -> rx.Component:
                     size="2"
                 ),
                 
-                # CONTENIDOS DE LAS PESTAÑAS
                 rx.tabs.content(panel_teoria(), value="concepto"),
                 
                 rx.cond(

@@ -8,9 +8,6 @@ if TYPE_CHECKING:
     from .patrones import PatronDiseño
     from .evaluacion import ResolucionTarea, RespuestaPregunta
 
-# =======================================================
-# PAQUETE: G. ACADEMICA (Tareas y Ejercicios)
-# =======================================================
 
 class Tarea(rx.Model, table=True):
     id_tarea: Optional[int] = sqlmodel.Field(default=None, primary_key=True)

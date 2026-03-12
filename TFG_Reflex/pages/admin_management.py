@@ -2,10 +2,6 @@ import reflex as rx
 from ..state.admin_state import AdminState
 from ..components.layout import sidebar_layout, header_component
 
-# =======================================================
-# DOCENTES
-# =======================================================
-
 def empty_state_docentes() -> rx.Component:
     return rx.center(
         rx.vstack(
@@ -70,10 +66,6 @@ def gestion_docentes_page() -> rx.Component:
         ),
         width="100%"
     )
-
-# =======================================================
-# ESTUDIANTES
-# =======================================================
 
 def empty_state_estudiantes() -> rx.Component:
     return rx.center(

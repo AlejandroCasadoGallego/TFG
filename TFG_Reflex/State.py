@@ -62,25 +62,21 @@ class State(rx.State):
                 self.error_mensaje = "Credenciales incorrectas."
 
     def cerrar_sesion(self):
-        """Limpia la sesión y vuelve al login."""
         self.usuario_actual = ""
         return rx.redirect("/")
 
     def check_login(self):
-        """Protección de ruta: si no hay usuario, rebota al login."""
         if not self.usuario_actual:
             return rx.redirect("/")
         if self.usuario_rol == "admin":
             self.cargar_estadisticas_admin()
     
     def _hash_password(self, password: str) -> str:
-        """Función privada para convertir texto plano en un hash SHA-256."""
         if not password:
             return ""
         return hashlib.sha256(password.encode()).hexdigest()
     
     def registrar_usuario(self):
-        """Crea un nuevo usuario con la contraseña ya hasheada."""
         with rx.session() as session:
             if not self.correo_input or not self.pass_input or not self.nombre_input:
                 self.error_mensaje = "Todos los campos son obligatorios."
@@ -138,7 +134,6 @@ class State(rx.State):
         return rx.redirect("/editar-perfil")
 
     def guardar_cambios_perfil(self):
-        """Valida y guarda los cambios del usuario."""
         with rx.session() as session:
             usuario = session.exec(
                 sqlmodel.select(Usuario).where(Usuario.id_usuario == self.datos_perfil["id"])
@@ -209,43 +204,35 @@ class State(rx.State):
             return self.cerrar_sesion()
         
     def cargar_estadisticas_admin(self):
-        """Calcula las estadísticas reales para el dashboard del administrador."""
         with rx.session() as session:
-            # Contamos Docentes activos
             docentes = session.exec(
                 sqlmodel.select(Docente).join(Usuario).where(Usuario.activo == True)
             ).all()
             self.total_docentes = str(len(docentes))
 
-            # Contamos Estudiantes activos (¡NUEVO!)
             estudiantes = session.exec(
                 sqlmodel.select(Estudiante).join(Usuario).where(Usuario.activo == True)
             ).all()
             self.total_estudiantes = str(len(estudiantes))
 
     def cargar_docentes(self):
-        """Carga la lista de docentes para la tabla de gestión."""
         if self.usuario_rol != "admin":
             return rx.redirect("/dashboard")
             
         with rx.session() as session:
-            # Hacemos un JOIN para traer los Usuarios que son Docentes
             statement = sqlmodel.select(Usuario).join(Docente).where(Usuario.id_usuario == Docente.usuario_id)
             resultados = session.exec(statement).all()
             
-            # Formateamos los datos en una lista de diccionarios para la UI
             self.lista_docentes = [
                 {
                     "id": str(u.id_usuario),
                     "nombre": u.nombreUsuario,
                     "correo": u.correo,
-                    # Reflex maneja mejor los booleanos si los pasamos como strings explícitos para los estilos
                     "estado": "Activo" if u.activo else "Inactivo" 
                 } for u in resultados
             ]
 
     def toggle_estado_docente(self, id_usuario_str: str):
-        """Activa o desactiva a un docente."""
         with rx.session() as session:
             usuario = session.exec(
                 sqlmodel.select(Usuario).where(Usuario.id_usuario == int(id_usuario_str))
@@ -256,14 +243,11 @@ class State(rx.State):
                 session.add(usuario)
                 session.commit()
                 
-        # Recargamos la lista y las estadísticas
         self.cargar_docentes()
         self.cargar_estadisticas_admin()
 
     def registrar_docente(self):
-        """Crea un nuevo docente desde el panel de admin."""
         with rx.session() as session:
-            # Validaciones
             if not self.new_doc_nombre.strip() or not self.new_doc_correo.strip() or not self.new_doc_pass.strip():
                 self.error_new_doc = "Todos los campos son obligatorios."
                 return
@@ -273,7 +257,6 @@ class State(rx.State):
                 self.error_new_doc = "Este correo ya está registrado."
                 return
 
-            # Crear Usuario
             nuevo_usuario = Usuario(
                 nombreUsuario=self.new_doc_nombre.strip(),
                 correo=self.new_doc_correo.strip(),
@@ -286,11 +269,9 @@ class State(rx.State):
             session.commit()
             session.refresh(nuevo_usuario)
 
-            # Crear registro en tabla Docente
             session.add(Docente(usuario_id=nuevo_usuario.id_usuario))
             session.commit()
 
-        # Limpiar formulario, cerrar modal y recargar lista
         self.new_doc_nombre = ""
         self.new_doc_correo = ""
         self.new_doc_pass = ""
@@ -299,7 +280,6 @@ class State(rx.State):
         self.cargar_estadisticas_admin()
 
     def guardar_pass_forzado(self):
-        """Valida y guarda la contraseña definitiva del docente."""
         if not self.pass_forzado_1 or not self.pass_forzado_2:
             self.error_pass_forzado = "Por favor, rellena ambos campos."
             return
@@ -318,20 +298,17 @@ class State(rx.State):
                     self.error_pass_forzado = "Debes elegir una contraseña diferente a la temporal que te dio el administrador."
                     return
                 
-                # Actualizamos y liberamos al usuario del cambio forzado
                 usuario.contraseñaHash = nuevo_hash
                 usuario.debe_cambiar_pass = False
                 session.add(usuario)
                 session.commit()
                 
-                # Limpiamos variables y lo dejamos entrar a su dashboard
                 self.pass_forzado_1 = ""
                 self.pass_forzado_2 = ""
                 self.error_pass_forzado = ""
                 return rx.redirect("/dashboard")
             
     def cargar_estudiantes(self):
-        """Carga la lista de estudiantes para la tabla de gestión."""
         if self.usuario_rol != "admin":
             return rx.redirect("/dashboard")
             
@@ -349,7 +326,6 @@ class State(rx.State):
             ]
 
     def toggle_estado_estudiante(self, id_usuario_str: str):
-        """Activa o desactiva a un estudiante."""
         with rx.session() as session:
             usuario = session.exec(
                 sqlmodel.select(Usuario).where(Usuario.id_usuario == int(id_usuario_str))
@@ -360,6 +336,5 @@ class State(rx.State):
                 session.add(usuario)
                 session.commit()
                 
-        # Recargamos la lista y el contador del dashboard
         self.cargar_estudiantes()
         self.cargar_estadisticas_admin()

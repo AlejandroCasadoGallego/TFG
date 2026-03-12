@@ -4,7 +4,6 @@ from .base_state import BaseState
 from ..models.usuarios import Usuario, Docente, Estudiante
 
 class AdminState(BaseState):
-    """Maneja las herramientas exclusivas del administrador."""
     total_docentes: str = "0"
     lista_docentes: list[dict[str, str]] = []
     

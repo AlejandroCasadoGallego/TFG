@@ -3,8 +3,6 @@ from ..state.base_state import BaseState
 from ..state.patterns_state import PatternsState
 from ..components.layout import sidebar_layout, header_component, public_header
 
-# --- DISEÑO DE LAS TARJETAS (GRID VS LISTA) ---
-
 def badge_categoria(categoria: str) -> rx.Component:
     color = rx.match(
         categoria,
@@ -16,21 +14,18 @@ def badge_categoria(categoria: str) -> rx.Component:
     return rx.badge(categoria, color_scheme=color, variant="solid")
 
 def render_imagen_fallback(patron: dict, alto: str) -> rx.Component:
-    """Renderiza la imagen real, o un icono elegante de 'plano' si no existe."""
     return rx.cond(
         patron["diagrama"] != "/placeholder.png",
         rx.image(src=patron["diagrama"], height=alto, width="100%", object_fit="contain"),
         rx.center(
-            rx.icon("layout-template", size=40, color="#94a3b8"), # Icono gris azulado
+            rx.icon("layout-template", size=40, color="#94a3b8"),
             width="100%", height=alto, background_color="#f1f5f9"
         )
     )
 
 def patron_card_grid(patron: dict) -> rx.Component:
-    """Formato Cuadrícula: Imagen grande arriba, info debajo."""
     return rx.card(
         rx.vstack(
-            # Imagen/Diagrama con el nuevo fallback
             render_imagen_fallback(patron, "150px"),
             
             rx.vstack(
@@ -51,12 +46,11 @@ def patron_card_grid(patron: dict) -> rx.Component:
                 
                 rx.divider(width="100%", margin_bottom="0.5em"),
                 
-                # Botonera con ICONOS
                 rx.hstack(
                     rx.button(
                         rx.icon("book-open", size=16), "Ver Patrón", 
                         on_click=rx.redirect(f"/patron/{patron['id']}"), 
-                        background_color="#4f46e5", color="white", _hover={"background_color": "#4338ca"}, # Colores CSS directos e infalibles
+                        background_color="#4f46e5", color="white", _hover={"background_color": "#4338ca"},
                         flex="1", cursor="pointer"
                     ),
                     rx.cond(
@@ -76,22 +70,18 @@ def patron_card_grid(patron: dict) -> rx.Component:
             spacing="0", height="100%"
         ),
         padding="0", width="100%", height="100%", border="1px solid #e5e7eb", overflow="hidden",
-        # Hacemos que toda la tarjeta se vuelva semitransparente si está inactiva
         opacity=rx.cond(patron["activo"], "1", "0.65"), 
         _hover={"box_shadow": "md", "transform": "translateY(-2px)", "transition": "all 0.2s"}
     )
 
 def patron_card_list(patron: dict) -> rx.Component:
-    """Formato Lista: Horizontal estructurado en 3 columnas rígidas."""
     return rx.card(
         rx.flex(
-            # Columna 1: Imagen cuadrada rígida
             rx.box(
                 render_imagen_fallback(patron, "100px"),
                 width="120px", flex_shrink="0", overflow="hidden", border_radius="6px", border="1px solid #e5e7eb"
             ),
             
-            # Columna 2: Textos (Ocupa el espacio restante)
             rx.vstack(
                 rx.hstack(
                     rx.heading(patron["nombre"], size="4", weight="bold", color="#111827"), 
@@ -108,7 +98,6 @@ def patron_card_list(patron: dict) -> rx.Component:
             
             rx.spacer(),
             
-            # Columna 3: Botonera alineada a la derecha
             rx.flex(
                 rx.button(rx.icon("book-open", size=16),"Ver Patrón", on_click=rx.redirect(f"/patron/{patron['id']}"), color_scheme="indigo", variant="soft", flex="1", cursor="pointer"),
                 rx.cond(
@@ -126,15 +115,13 @@ def patron_card_list(patron: dict) -> rx.Component:
             align="center", width="100%", direction={"initial": "column", "md": "row"}, gap="4"
         ),
         padding="1.2em", width="100%", border="1px solid #e5e7eb", 
-        opacity=rx.cond(patron["activo"], "1", "0.65"), # Efecto visual de inactivo
+        opacity=rx.cond(patron["activo"], "1", "0.65"),
         _hover={"background_color": "#f8fafc", "box_shadow": "sm"}
     )
 
-# --- CONTENIDO PRINCIPAL ---
 
 def contenido_biblioteca() -> rx.Component:
     return rx.vstack(
-        # 1. Cabecera y Buscador (CORREGIDO)
         rx.flex(
             rx.vstack(
                 rx.heading("Biblioteca de Patrones", size="8", weight="bold", color="#111827"),
@@ -152,7 +139,6 @@ def contenido_biblioteca() -> rx.Component:
                 )
             ),
 
-            # LA LUPA Y EL BUSCADOR AHORA SON VISIBLES
             rx.input(
                 rx.input.slot(rx.icon("search", size=18, color="#6b7280")), # Lupa interior
                 placeholder="Buscar por nombre...", 
@@ -163,13 +149,12 @@ def contenido_biblioteca() -> rx.Component:
                 size="3", 
                 radius="full", 
                 background_color="white", 
-                border="1px solid #d1d5db", # Borde gris para que se vea
+                border="1px solid #d1d5db",
                 color="#111827"
             ),
             width="100%", align="end", margin_bottom="2em", flex_direction=["column", "column", "row"], gap="4"
         ),
         
-        # 2. Controles (Categorías y Vista)
         rx.hstack(
             rx.hstack(
                 rx.foreach(
@@ -179,7 +164,6 @@ def contenido_biblioteca() -> rx.Component:
                 spacing="2"
             ),
             rx.spacer(),
-            # BOTONES DE VISTA CORREGIDOS (A prueba de fallos con texto)
             rx.hstack(
                 rx.button(
                     rx.icon("layout-grid", size=18), "Cuadrícula",
@@ -198,7 +182,6 @@ def contenido_biblioteca() -> rx.Component:
             width="100%", margin_bottom="2em", align="center"
         ),
 
-        # 3. Catálogo o Empty State
         rx.cond(
             PatternsState.patrones_filtrados.length() > 0,
             rx.cond(
@@ -219,23 +202,20 @@ def contenido_biblioteca() -> rx.Component:
         width="100%", max_width="1400px", margin="0 auto"
     )
 
-# --- WRAPPER ---
 
 def biblioteca_page() -> rx.Component:
     return rx.cond(
         BaseState.usuario_actual == "",
-        # SI ES VISITANTE
         rx.vstack(
             public_header(),
             rx.box(contenido_biblioteca(), padding="3em", width="100%"),
             width="100%", min_height="100vh", background_color="#f9fafb"
         ),
-        # SI ESTÁ LOGUEADO
         rx.flex(
             sidebar_layout(),
             rx.box(
                 rx.vstack(
-                    header_component(titulo=""), # <--- ¡AQUÍ ESTÁ EL TRUCO!
+                    header_component(titulo=""),
                     contenido_biblioteca(), 
                     padding="3em", 
                     width="100%"

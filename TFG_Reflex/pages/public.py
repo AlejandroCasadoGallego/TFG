@@ -14,14 +14,13 @@ def landing_page() -> rx.Component:
                 spacing="4", margin_top="2.5em"
             ),
             
-            # --- NUEVO BOTÓN PARA VISITANTES ---
             rx.link(
                 rx.button(
                     rx.hstack(rx.icon("library", size=18), rx.text("Explorar Biblioteca Abierta"), align="center", spacing="2"),
                     variant="surface", 
                     size="3", 
                     color_scheme="gray", 
-                    color="#374151", # Forzamos el color del texto a gris oscuro
+                    color="#374151",
                     margin_top="2em", 
                     cursor="pointer",
                     box_shadow="sm"

@@ -4,7 +4,6 @@ from .base_state import BaseState
 from ..models.usuarios import Usuario, Estudiante
 
 class AuthState(BaseState):
-    """Maneja la autenticación, registro y cambios de contraseña forzados."""
     nombre_input: str = ""
     correo_input: str = ""
     pass_input: str = ""

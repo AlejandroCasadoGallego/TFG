@@ -6,9 +6,6 @@ from datetime import datetime
 if TYPE_CHECKING:
     from .tarea import Tarea
     from .evaluacion import ResolucionTarea
-# =======================================================
-# PAQUETE: G. DE USUARIOS
-# =======================================================
 
 class Usuario(sqlmodel.SQLModel, table=True):
     id_usuario: int | None = sqlmodel.Field(default=None, primary_key=True)
@@ -20,7 +17,6 @@ class Usuario(sqlmodel.SQLModel, table=True):
     debe_cambiar_pass: bool = sqlmodel.Field(default=False)
 
 class EstudianteGrupo(rx.Model, table=True):
-    """Tabla intermedia N:M"""
     estudiante_id: int = sqlmodel.Field(foreign_key="estudiante.usuario_id", primary_key=True)
     grupo_id: int = sqlmodel.Field(foreign_key="grupos.id_grupo", primary_key=True)
 

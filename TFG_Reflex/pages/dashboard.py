@@ -8,7 +8,6 @@ def vista_admin() -> rx.Component:
     return rx.vstack(
         rx.grid(
             stat_card("Total Usuarios", "150", "users", "#4f46e5"),
-            # Usamos AdminState para los contadores específicos
             stat_card("Docentes", valor=AdminState.total_docentes, icono="graduation-cap", color_bg="#0891b2", ruta="/gestion-docentes"),
             stat_card("Estudiantes", valor=AdminState.total_estudiantes, icono="user-plus", color_bg="#16a34a", ruta="/gestion-estudiantes"),
             stat_card("Alertas Sistema", "0", "shield-check", "#ef4444"),
@@ -45,13 +44,12 @@ def index_page() -> rx.Component:
         rx.box(
             rx.vstack(
                 header_component(),
-                # Usamos BaseState.usuario_rol para el match
                 rx.match(
                     BaseState.usuario_rol,
                     ("admin", vista_admin()),
                     ("docente", vista_docente()),
                     ("estudiante", vista_estudiante()),
-                    vista_estudiante(), # Caso por defecto
+                    vista_estudiante(),
                 ),
                 padding="3em",
                 max_width="1400px",

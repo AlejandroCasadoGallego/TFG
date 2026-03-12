@@ -7,10 +7,6 @@ if TYPE_CHECKING:
     from .usuarios import Estudiante
     from .tarea import Pregunta, Tarea
 
-# =======================================================
-# PAQUETE: G. DE EVALUACIÓN
-# =======================================================
-
 class ResolucionTarea(rx.Model, table=True):
     fechaEntrega: datetime
     calificacionTotal: float = sqlmodel.Field(default=0.0)

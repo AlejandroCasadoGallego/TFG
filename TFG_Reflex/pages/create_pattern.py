@@ -10,7 +10,6 @@ def create_pattern_page() -> rx.Component:
             rx.vstack(
                 header_component(titulo=""),
                 
-                # Cabecera
                 rx.hstack(
                     rx.vstack(
                         rx.heading("Crear Nuevo Patrón", size="8", weight="bold", color="#111827"),
@@ -24,7 +23,6 @@ def create_pattern_page() -> rx.Component:
                     width="100%", align="center", margin_bottom="2em"
                 ),
                 
-                # Formulario
                 rx.card(
                     rx.vstack(
                         rx.grid(
@@ -52,7 +50,6 @@ def create_pattern_page() -> rx.Component:
                             width="100%", margin_top="1em"
                         ),
 
-                        # ZONA DE SUBIDA DE IMAGEN (Drag & Drop)
                         rx.vstack(
                             rx.text("Diagrama UML (Imagen)", weight="bold", size="2", color="#374151"),
                             rx.upload(
@@ -61,7 +58,7 @@ def create_pattern_page() -> rx.Component:
                                     rx.text("Arrastra un archivo PNG o JPG aquí.", color="#6b7280", size="1"),
                                     align="center", justify="center", padding="2em", border="2px dashed #d1d5db", border_radius="8px", background_color="#f9fafb", width="100%", cursor="pointer"
                                 ),
-                                id="upload_diagrama", # ID necesario para referenciarlo luego
+                                id="upload_diagrama",
                                 multiple=False,
                                 accept={
                                     "image/png": [".png"],
@@ -75,10 +72,8 @@ def create_pattern_page() -> rx.Component:
                                 rx.hstack(
                                     rx.icon("image", color="#16a34a", size=18),
                                     rx.text("Archivo listo para subir: ", weight="bold", size="2", color="#166534"),
-                                    # Muestra el nombre del archivo seleccionado
                                     rx.foreach(rx.selected_files("upload_diagrama"), lambda file: rx.text(file, size="2", color="#15803d")),
                                     rx.spacer(),
-                                    # Botón para limpiar si nos equivocamos de foto
                                     rx.button(
                                         rx.icon("trash-2", size=16),
                                         on_click=rx.clear_selected_files("upload_diagrama"),
@@ -126,7 +121,6 @@ def create_pattern_page() -> rx.Component:
                             rx.text(PatternsState.error_creacion, color="#ef4444", size="2", weight="medium", margin_top="1em")
                         ),
 
-                        # Botón que desencadena la subida de la imagen y guarda en BD
                         rx.button(
                             "Guardar Patrón", 
                             on_click=PatternsState.handle_upload(rx.upload_files(upload_id="upload_diagrama")),

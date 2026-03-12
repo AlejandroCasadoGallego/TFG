@@ -7,10 +7,6 @@ from datetime import datetime
 if TYPE_CHECKING:
     from .tarea import Ejercicio
 
-# =======================================================
-# PAQUETE: G. DE PATRONES
-# =======================================================
-
 class PatronDiseño(rx.Model, table=True):
     id_patron: Optional[int] = sqlmodel.Field(default=None, primary_key=True)
     nombre: str = sqlmodel.Field(max_length=150)

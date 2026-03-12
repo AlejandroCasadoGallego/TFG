@@ -1,9 +1,5 @@
 import reflex as rx
 
-# =======================================================
-# COMPONENTES ATÓMICOS (ESTILOS FIJOS)
-# =======================================================
-
 def stat_card(titulo: str, valor: str, icono: str, color_bg: str, ruta: str = None) -> rx.Component:
     tarjeta = rx.card(
         rx.hstack(
