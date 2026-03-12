@@ -17,6 +17,7 @@ class Usuario(sqlmodel.SQLModel, table=True):
     contraseñaHash: str
     rol: str
     activo: bool = sqlmodel.Field(default=True)
+    debe_cambiar_pass: bool = sqlmodel.Field(default=False)
 
 class EstudianteGrupo(rx.Model, table=True):
     """Tabla intermedia N:M"""

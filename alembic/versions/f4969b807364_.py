@@ -1,18 +1,19 @@
 """empty message
 
-Revision ID: e94b200bcfbc
+Revision ID: f4969b807364
 Revises: 
-Create Date: 2026-02-25 19:51:02.696031
+Create Date: 2026-03-09 18:34:34.799692
 
 """
 from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import mysql
 import sqlmodel
 
 # revision identifiers, used by Alembic.
-revision: str = 'e94b200bcfbc'
+revision: str = 'f4969b807364'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,11 +27,12 @@ def upgrade() -> None:
     sa.Column('nombre', sqlmodel.sql.sqltypes.AutoString(length=150), nullable=False),
     sa.Column('categoria', sqlmodel.sql.sqltypes.AutoString(length=100), nullable=False),
     sa.Column('descripcion', sa.Text(), nullable=False),
-    sa.Column('diagrama', sa.Text(), nullable=True),
+    sa.Column('diagrama', mysql.LONGTEXT(), nullable=True),
     sa.Column('ventajas', sa.Text(), nullable=False),
     sa.Column('desventajas', sa.Text(), nullable=False),
     sa.Column('pseudocodigo', sa.Text(), nullable=False),
     sa.Column('ejemplos', sa.Text(), nullable=False),
+    sa.Column('activo', sa.Boolean(), nullable=False),
     sa.PrimaryKeyConstraint('id_patron')
     )
     op.create_table('usuario',
@@ -40,6 +42,7 @@ def upgrade() -> None:
     sa.Column('contraseñaHash', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('rol', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('activo', sa.Boolean(), nullable=False),
+    sa.Column('debe_cambiar_pass', sa.Boolean(), nullable=False),
     sa.PrimaryKeyConstraint('id_usuario'),
     sa.UniqueConstraint('correo')
     )
