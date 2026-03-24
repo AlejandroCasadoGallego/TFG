@@ -65,17 +65,36 @@ class PatternDetailState(BaseState):
         if not self.patron_actual:
             return
 
+        def limpiar_texto(texto: str) -> str:
+            if not texto:
+                return ""
+            reemplazos = {
+                "…": "...",
+                "“": '"',
+                "”": '"',
+                "‘": "'",
+                "’": "'",
+                "–": "-",
+                "—": "-",
+                "\u200b": "",
+                "\xa0": " " 
+            }
+            for original, seguro in reemplazos.items():
+                texto = texto.replace(original, seguro)
+                
+            return texto.encode('latin-1', errors='ignore').decode('latin-1')
+
         pdf = FPDF()
         pdf.add_page()
         pdf.set_auto_page_break(auto=True, margin=15)
 
         pdf.set_font("helvetica", style="B", size=24)
         pdf.set_text_color(17, 24, 39)
-        pdf.cell(0, 10, self.patron_actual["nombre"], new_x="LMARGIN", new_y="NEXT", align="C")
+        pdf.cell(0, 10, limpiar_texto(self.patron_actual["nombre"]), new_x="LMARGIN", new_y="NEXT", align="C")
         
         pdf.set_font("helvetica", style="I", size=14)
         pdf.set_text_color(107, 114, 128)
-        pdf.cell(0, 10, f"Categoría: {self.patron_actual['categoria']}", new_x="LMARGIN", new_y="NEXT", align="C")
+        pdf.cell(0, 10, limpiar_texto(f"Categoría: {self.patron_actual['categoria']}"), new_x="LMARGIN", new_y="NEXT", align="C")
         pdf.ln(10)
 
         img_data = self.patron_actual["diagrama"]
@@ -103,7 +122,7 @@ class PatternDetailState(BaseState):
                 
                 pdf.set_font("helvetica", size=12)
                 pdf.set_text_color(55, 65, 81)
-                pdf.multi_cell(0, 8, txt=contenido)
+                pdf.multi_cell(0, 8, txt=limpiar_texto(contenido))
                 pdf.ln(5)
 
         imprimir_seccion("Descripción", self.patron_actual["descripcion"])
@@ -119,7 +138,7 @@ class PatternDetailState(BaseState):
             pdf.set_font("courier", size=10)
             pdf.set_text_color(0, 0, 0)
             pdf.set_fill_color(243, 244, 246)
-            pdf.multi_cell(0, 6, txt=self.patron_actual["pseudocodigo"], fill=True)
+            pdf.multi_cell(0, 6, txt=limpiar_texto(self.patron_actual["pseudocodigo"]), fill=True)
 
         pdf_bytes = bytes(pdf.output()) 
         

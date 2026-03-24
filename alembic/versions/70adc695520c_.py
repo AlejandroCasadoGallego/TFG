@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: f4969b807364
+Revision ID: 70adc695520c
 Revises: 
-Create Date: 2026-03-09 18:34:34.799692
+Create Date: 2026-03-24 19:10:27.152773
 
 """
 from typing import Sequence, Union
@@ -13,7 +13,7 @@ from sqlalchemy.dialects import mysql
 import sqlmodel
 
 # revision identifiers, used by Alembic.
-revision: str = 'f4969b807364'
+revision: str = '70adc695520c'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -61,13 +61,29 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['usuario_id'], ['usuario.id_usuario'], ),
     sa.PrimaryKeyConstraint('usuario_id')
     )
+    op.create_table('notificacion',
+    sa.Column('id_notificacion', sa.Integer(), nullable=False),
+    sa.Column('remitente_id', sa.Integer(), nullable=False),
+    sa.Column('destinatario_id', sa.Integer(), nullable=False),
+    sa.Column('titulo', sqlmodel.sql.sqltypes.AutoString(length=150), nullable=False),
+    sa.Column('mensaje', sa.Text(), nullable=False),
+    sa.Column('leida', sa.Boolean(), nullable=False),
+    sa.Column('fecha', sa.DateTime(), nullable=False),
+    sa.ForeignKeyConstraint(['destinatario_id'], ['usuario.id_usuario'], ),
+    sa.ForeignKeyConstraint(['remitente_id'], ['usuario.id_usuario'], ),
+    sa.PrimaryKeyConstraint('id_notificacion')
+    )
     op.create_table('grupos',
     sa.Column('id_grupo', sa.Integer(), nullable=False),
     sa.Column('nombre', sqlmodel.sql.sqltypes.AutoString(length=100), nullable=False),
+    sa.Column('codigo_acceso', sqlmodel.sql.sqltypes.AutoString(length=10), nullable=False),
     sa.Column('docente_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['docente_id'], ['docente.usuario_id'], ),
     sa.PrimaryKeyConstraint('id_grupo')
     )
+    with op.batch_alter_table('grupos', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_grupos_codigo_acceso'), ['codigo_acceso'], unique=True)
+
     op.create_table('estudiantegrupo',
     sa.Column('estudiante_id', sa.Integer(), nullable=False),
     sa.Column('grupo_id', sa.Integer(), nullable=False),
@@ -160,7 +176,11 @@ def downgrade() -> None:
     op.drop_table('ejercicio')
     op.drop_table('tarea')
     op.drop_table('estudiantegrupo')
+    with op.batch_alter_table('grupos', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_grupos_codigo_acceso'))
+
     op.drop_table('grupos')
+    op.drop_table('notificacion')
     op.drop_table('estudiante')
     op.drop_table('docente')
     op.drop_table('administrador')

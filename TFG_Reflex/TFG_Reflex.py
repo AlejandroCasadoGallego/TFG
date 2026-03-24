@@ -14,6 +14,11 @@ from .state.pattern_detail_state import PatternDetailState
 from .pages.pattern_detail import pattern_detail_page
 from .state.edit_pattern_state import EditPatternState
 from .pages.edit_pattern import edit_pattern_page
+from .pages.docente_grupos import docente_grupos_page
+from .state.grupo_state import GrupoState
+from .pages.estudiante_grupos import estudiante_grupos_page
+from .state.estudiante_grupos_state import EstudianteGruposState
+from .pages.notificaciones import notificaciones_page
 from .models import *
 
 app = rx.App(
@@ -32,3 +37,6 @@ app.add_page(biblioteca_page, route="/biblioteca", on_load=PatternsState.cargar_
 app.add_page(create_pattern_page, route="/crear-patron", on_load=BaseState.check_login)
 app.add_page(pattern_detail_page, route="/patron/[id_patron]", on_load=PatternDetailState.cargar_patron)
 app.add_page(edit_pattern_page, route="/editar-patron/[id_patron]", on_load=EditPatternState.cargar_datos)
+app.add_page(docente_grupos_page, route="/mis-grupos", on_load=[BaseState.check_login, GrupoState.cargar_grupos])
+app.add_page(estudiante_grupos_page, route="/mis-grupos-estudiante", on_load=[BaseState.check_login, EstudianteGruposState.cargar_grupos])
+app.add_page(notificaciones_page, route="/notificaciones", on_load=[BaseState.check_login, BaseState.cargar_notificaciones])

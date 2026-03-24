@@ -1,6 +1,8 @@
 import reflex as rx
 import sqlmodel
 from typing import Optional, List, TYPE_CHECKING
+import random
+import string
 from datetime import datetime
 
 if TYPE_CHECKING:
@@ -43,6 +45,8 @@ class Grupos(rx.Model, table=True):
     id_grupo: Optional[int] = sqlmodel.Field(default=None, primary_key=True)
     nombre: str = sqlmodel.Field(max_length=100)
     
+    codigo_acceso: str = sqlmodel.Field(unique=True, index=True, max_length=10)
+
     docente_id: Optional[int] = sqlmodel.Field(default=None, foreign_key="docente.usuario_id")
     docente: Optional["Docente"] = sqlmodel.Relationship(back_populates="grupos")
 
@@ -52,3 +56,16 @@ class Grupos(rx.Model, table=True):
     )
     
     tareas: List["Tarea"] = sqlmodel.Relationship(back_populates="grupo")
+    @staticmethod
+    def generar_codigo() -> str:
+        caracteres = string.ascii_uppercase + string.digits
+        return ''.join(random.choice(caracteres) for _ in range(6))
+    
+class Notificacion(rx.Model, table=True):
+    id_notificacion: Optional[int] = sqlmodel.Field(default=None, primary_key=True)
+    remitente_id: int = sqlmodel.Field(foreign_key="usuario.id_usuario")
+    destinatario_id: int = sqlmodel.Field(foreign_key="usuario.id_usuario")
+    titulo: str = sqlmodel.Field(max_length=150)
+    mensaje: str = sqlmodel.Field(sa_type=sqlmodel.Text)
+    leida: bool = sqlmodel.Field(default=False)
+    fecha: datetime = sqlmodel.Field(default_factory=datetime.utcnow)

@@ -5,7 +5,7 @@ from .ui_elements import sidebar_item
 def menu_estudiante():
     return rx.vstack(
         rx.text("GESTIÓN ACADÉMICA", size="1", weight="bold", color="#9ca3af", margin_top="1em", padding_left="1em"),
-        sidebar_item("Mis Asignaturas", "book-marked", "#"),
+        sidebar_item("Grupos", "users", "/mis-grupos-estudiante"),
         sidebar_item("Materiales", "folder-open", "#"),
         sidebar_item("Calendario Entregas", "calendar-clock", "#"),
         
@@ -29,7 +29,7 @@ def menu_docente():
         sidebar_item("Crear Actividades", "circle-plus", "#"),
         
         rx.text("SEGUIMIENTO", size="1", weight="bold", color="#9ca3af", margin_top="1em", padding_left="1em"),
-        sidebar_item("Gestión Estudiantes", "users", "#"),
+        sidebar_item("Mis Grupos", "users", "/mis-grupos"),
         sidebar_item("Ver Entregas", "inbox", "#"),
         sidebar_item("Estadísticas", "bar-chart-3", "#"),
         
@@ -60,6 +60,32 @@ def header_component(titulo: str = "Panel de Control")-> rx.Component:
     return rx.hstack(
         rx.heading(titulo, size="6", weight="bold", color="#111827"),
         rx.spacer(),
+        rx.link(
+            rx.box(
+                rx.icon("bell", size=24, color="#6b7280"),
+                rx.cond(
+                    BaseState.notificaciones_sin_leer > 0,
+                    rx.box(
+                        rx.text(BaseState.notificaciones_sin_leer, size="1", weight="bold", color="white"),
+                        position="absolute",
+                        top="-5px",
+                        right="-5px",
+                        background_color="#ef4444",
+                        border_radius="full",
+                        width="18px",
+                        height="18px",
+                        display="flex",
+                        align_items="center",
+                        justify_content="center"
+                    )
+                ),
+                position="relative",
+                cursor="pointer",
+                margin_right="1.5em"
+            ),
+            href="/notificaciones", 
+        ),
+
         rx.button(
             rx.hstack(
                 rx.avatar(fallback=BaseState.usuario_actual[:2], size="4", radius="full", color_scheme="indigo"),
