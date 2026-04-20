@@ -1,8 +1,8 @@
-"""empty message
+"""Cambiar respuestaCorrecta a texto
 
-Revision ID: 70adc695520c
+Revision ID: d16ce4897b38
 Revises: 
-Create Date: 2026-03-24 19:10:27.152773
+Create Date: 2026-04-15 19:34:28.744831
 
 """
 from typing import Sequence, Union
@@ -13,7 +13,7 @@ from sqlalchemy.dialects import mysql
 import sqlmodel
 
 # revision identifiers, used by Alembic.
-revision: str = '70adc695520c'
+revision: str = 'd16ce4897b38'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -127,7 +127,7 @@ def upgrade() -> None:
     sa.Column('enunciado', sa.Text(), nullable=False),
     sa.Column('tipo', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('opciones', sa.JSON(), nullable=False),
-    sa.Column('respuestaCorrecta', sa.Boolean(), nullable=False),
+    sa.Column('respuestaCorrecta', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('tarea_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['tarea_id'], ['tarea.id_tarea'], ),
     sa.PrimaryKeyConstraint('id')

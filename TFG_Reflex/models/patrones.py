@@ -20,3 +20,9 @@ class PatronDiseño(rx.Model, table=True):
     activo: bool = sqlmodel.Field(default=True)
     
     ejercicios: List["Ejercicio"] = sqlmodel.Relationship(back_populates="patron")
+
+class PatronRelacion(rx.Model, table=True):
+    patron_origen_id: int = sqlmodel.Field(foreign_key="patrondiseño.id_patron")
+    patron_destino_id: int = sqlmodel.Field(foreign_key="patrondiseño.id_patron")
+    nombre_relacion: str = sqlmodel.Field(max_length=200)
+    descripcion: str = sqlmodel.Field(max_length=300, default="")

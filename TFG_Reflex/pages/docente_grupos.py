@@ -99,6 +99,72 @@ def modal_enviar_codigo_global() -> rx.Component:
         on_open_change=GrupoState.cambiar_estado_modal
     )
 
+def modal_editar_grupo_global() -> rx.Component:
+    return rx.dialog.root(
+        rx.dialog.content(
+            rx.dialog.title("Editar Grupo", color="#111827"),
+            rx.dialog.description("Modifica los detalles, expulsa miembros o invita a nuevos alumnos.", size="2", color="#4b5563"),
+            
+            rx.scroll_area(
+                rx.vstack(
+                    
+                    rx.text("Nombre del Grupo *", weight="bold", size="2", color="#374151", margin_top="1em"),
+                    rx.input(
+                        on_change=GrupoState.set_grupo_editar_nombre,
+                        value=GrupoState.grupo_editar_nombre,
+                        width="100%", border="1px solid #d1d5db"
+                    ),
+                    
+                    rx.divider(margin_y="1em"),
+                    
+                    
+                    rx.hstack(
+                        rx.icon("users", size=16, color="#4b5563"),
+                        rx.text("Miembros Actuales", weight="bold", size="2", color="#374151"),
+                        align="center"
+                    ),
+                    rx.cond(
+                        GrupoState.miembros_actuales.length() > 0,
+                        rx.vstack(rx.foreach(GrupoState.miembros_actuales, render_miembro_actual), width="100%", spacing="0"),
+                        rx.text("Aún no hay alumnos matriculados.", size="2", color="#9ca3af", font_style="italic")
+                    ),
+                    
+                    rx.divider(margin_y="1em"),
+                    
+                    
+                    rx.hstack(
+                        rx.icon("user-plus", size=16, color="#4b5563"),
+                        rx.text("Invitar a la clase", weight="bold", size="2", color="#374151"),
+                        align="center"
+                    ),
+                    rx.input(
+                        rx.input.slot(rx.icon("search", size=14)),
+                        placeholder="Buscar alumnos no matriculados...",
+                        on_change=GrupoState.set_busqueda_invitar,
+                        value=GrupoState.busqueda_invitar,
+                        width="100%"
+                    ),
+                    rx.box(
+                        rx.vstack(rx.foreach(GrupoState.candidatos_filtrados, render_candidato_invitar), width="100%", spacing="0"),
+                        max_height="150px", overflow="auto", border="1px solid #e5e7eb", border_radius="8px", background_color="#f9fafb", margin_top="0.5em"
+                    ),
+                    
+                    spacing="2", width="100%"
+                ),
+                height="400px", width="100%", padding_right="1em"
+            ),
+            
+            rx.flex(
+                rx.button("Cancelar", variant="surface", color_scheme="gray", on_click=GrupoState.cambiar_estado_editar(False), cursor="pointer"),
+                rx.button("Guardar Cambios", on_click=GrupoState.guardar_edicion, color_scheme="indigo", cursor="pointer"),
+                spacing="3", margin_top="1.5em", justify="end",
+            ),
+            max_width="500px", background_color="white"
+        ),
+        open=GrupoState.modal_editar_abierto,
+        on_open_change=GrupoState.cambiar_estado_editar
+    )
+
 def tarjeta_grupo(grupo: Grupos) -> rx.Component:
     return rx.card(
         rx.vstack(
@@ -121,11 +187,13 @@ def tarjeta_grupo(grupo: Grupos) -> rx.Component:
                         ),
                         rx.menu.separator(),
                         rx.menu.item(
-                            rx.icon("pencil", size=14), "Editar nombre", 
+                            rx.icon("pencil", size=14), "Editar grupo", 
+                            on_click=GrupoState.abrir_modal_editar(grupo.id_grupo, grupo.nombre, grupo.codigo_acceso),
                             cursor="pointer"
                         ),
                         rx.menu.item(
                             rx.icon("trash-2", size=14), "Eliminar grupo", 
+                            on_click=GrupoState.eliminar_grupo(grupo.id_grupo),
                             color="#ef4444", cursor="pointer" 
                         )
                     )
@@ -208,6 +276,7 @@ def docente_grupos_page() -> rx.Component:
                 ),
                 
                 modal_enviar_codigo_global(),
+                modal_editar_grupo_global(),
                 
                 padding="3em", max_width="1000px", margin="0 auto", width="100%"
             ),
@@ -234,4 +303,33 @@ def render_estudiante(nombre: str) -> rx.Component:
             cursor="pointer",
         ),
         width="100%", padding="0.75em", border_bottom="1px solid #f3f4f6", align="center"
+    )
+
+def render_miembro_actual(miembro: dict) -> rx.Component:
+    return rx.hstack(
+        rx.avatar(fallback=miembro["iniciales"], size="1", radius="full", color_scheme="gray"),
+        rx.text(miembro["nombre"], size="2", color="#374151"),
+        rx.spacer(),
+        rx.button(
+            rx.icon("user-minus", size=14), "Expulsar",
+            size="1", variant="soft", color_scheme="red", cursor="pointer",
+            on_click=lambda: GrupoState.expulsar_miembro(miembro["id"].to(int), miembro["nombre"])
+        ),
+        width="100%", padding="0.5em", border_bottom="1px solid #f3f4f6", align="center"
+    )
+
+def render_candidato_invitar(nombre: str) -> rx.Component:
+    return rx.hstack(
+        rx.avatar(fallback=nombre[:2].upper(), size="1", radius="full", color_scheme="indigo"),
+        rx.text(nombre, size="2", color="#374151"),
+        rx.spacer(),
+        rx.button(
+            rx.cond(GrupoState.seleccionados_invitar.contains(nombre), rx.icon("check", size=14), rx.text("Invitar", size="1")),
+            on_click=GrupoState.toggle_invitar(nombre),
+            size="1",
+            variant=rx.cond(GrupoState.seleccionados_invitar.contains(nombre), "solid", "soft"),
+            color_scheme=rx.cond(GrupoState.seleccionados_invitar.contains(nombre), "green", "indigo"),
+            cursor="pointer",
+        ),
+        width="100%", padding="0.5em", border_bottom="1px solid #f3f4f6", align="center"
     )

@@ -140,7 +140,7 @@ def contenido_biblioteca() -> rx.Component:
             ),
 
             rx.input(
-                rx.input.slot(rx.icon("search", size=18, color="#6b7280")), # Lupa interior
+                rx.input.slot(rx.icon("search", size=18, color="#6b7280")), 
                 placeholder="Buscar por nombre...", 
                 value=PatternsState.busqueda, 
                 on_change=PatternsState.set_busqueda, 

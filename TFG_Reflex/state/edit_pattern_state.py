@@ -6,7 +6,7 @@ from .base_state import BaseState
 from ..models.patrones import PatronDiseño
 
 class EditPatternState(BaseState):
-    """Maneja el formulario para editar un patrón existente."""
+    
     
     edit_nombre: str = ""
     edit_categoria: str = ""

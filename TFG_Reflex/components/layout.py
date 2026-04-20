@@ -12,10 +12,10 @@ def menu_estudiante():
         rx.text("PROGRESO", size="1", weight="bold", color="#9ca3af", margin_top="1em", padding_left="1em"),
         sidebar_item("Calificaciones", "award", "#"),
         sidebar_item("Histórico Entregas", "history", "#"),
-        sidebar_item("Progreso Académico", "trending-up", "#"),
+        sidebar_item("Mis Tareas", "clipboard-list", "/mis-tareas-estudiante"),
         
         rx.text("COMUNICACIÓN", size="1", weight="bold", color="#9ca3af", margin_top="1em", padding_left="1em"),
-        sidebar_item("Notificaciones", "bell", "#"),
+        sidebar_item("Notificaciones", "bell", "/notificaciones"),
         sidebar_item("Avisos", "megaphone", "#"),
         width="100%",
         spacing="1"
@@ -24,9 +24,10 @@ def menu_estudiante():
 def menu_docente():
     return rx.vstack(
         rx.text("CONTENIDO", size="1", weight="bold", color="#9ca3af", margin_top="1em", padding_left="1em"),
+        sidebar_item("Crear Tarea", "circle-plus", "/crear-tarea"),
+        sidebar_item("Mis Tareas", "list-checks", "/mis-tareas"), 
         sidebar_item("Publicar Materiales", "upload", "#"),
         sidebar_item("Gestión Materiales", "files", "#"),
-        sidebar_item("Crear Actividades", "circle-plus", "#"),
         
         rx.text("SEGUIMIENTO", size="1", weight="bold", color="#9ca3af", margin_top="1em", padding_left="1em"),
         sidebar_item("Mis Grupos", "users", "/mis-grupos"),
@@ -35,7 +36,7 @@ def menu_docente():
         
         rx.text("COMUNICACIÓN", size="1", weight="bold", color="#9ca3af", margin_top="1em", padding_left="1em"),
         sidebar_item("Anuncios Clase", "megaphone", "#"),
-        sidebar_item("Mensajes Alumnos", "message-square", "#"),
+        sidebar_item("Mensajes Alumnos", "message-square", "/mensajes-alumnos"),
         width="100%",
         spacing="1"
     )

@@ -2,6 +2,7 @@ import reflex as rx
 import sqlmodel
 from typing import Optional, List, TYPE_CHECKING
 from datetime import datetime
+from sqlalchemy.dialects.mysql import LONGTEXT
 
 if TYPE_CHECKING:
     from .usuarios import Estudiante
@@ -21,7 +22,8 @@ class ResolucionTarea(rx.Model, table=True):
     respuestas: List["RespuestaPregunta"] = sqlmodel.Relationship(back_populates="resolucion")
 
 class RespuestaPregunta(rx.Model, table=True):
-    respuesta: str = sqlmodel.Field(sa_type=sqlmodel.Text)
+    respuesta: str = sqlmodel.Field(default="", sa_type=sqlmodel.Text)
+    respuesta_diagrama: Optional[str] = sqlmodel.Field(default=None, sa_type=LONGTEXT)
     calificacion: float = sqlmodel.Field(default=0.0)
     retroalimentacion: Optional[str] = sqlmodel.Field(default=None, sa_type=sqlmodel.Text)
     

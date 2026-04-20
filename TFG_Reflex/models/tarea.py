@@ -48,7 +48,7 @@ class Pregunta(rx.Model, table=True):
     tipo: str 
     
     opciones: List[str] = sqlmodel.Field(default=[], sa_type=sqlmodel.JSON)
-    respuestaCorrecta: bool 
+    respuestaCorrecta: str 
     
     tarea_id: int = sqlmodel.Field(foreign_key="tarea.id_tarea")
     tarea: Optional["Tarea"] = sqlmodel.Relationship(back_populates="preguntas")

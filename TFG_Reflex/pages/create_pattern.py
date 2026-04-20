@@ -122,7 +122,7 @@ def create_pattern_page() -> rx.Component:
                         ),
 
                         rx.button(
-                            "Guardar Patrón", 
+                            "Crear Patrón", 
                             on_click=PatternsState.handle_upload(rx.upload_files(upload_id="upload_diagrama")),
                             color_scheme="indigo", size="4", width="100%", margin_top="2em", cursor="pointer"
                         ),

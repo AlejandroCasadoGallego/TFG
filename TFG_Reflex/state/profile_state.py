@@ -4,7 +4,7 @@ from .base_state import BaseState
 from ..models.usuarios import Usuario
 
 class ProfileState(BaseState):
-    """Maneja la vista y edición del perfil del usuario."""
+    
     datos_perfil: dict = {}
     edit_nombre: str = ""
     edit_correo: str = ""

@@ -1,6 +1,8 @@
 import reflex as rx
 from ..state.base_state import BaseState
 from ..state.admin_state import AdminState
+from ..state.grupo_state import GrupoState
+from ..state.dashboard_state import DashboardState
 from ..components.layout import sidebar_layout, header_component
 from ..components.ui_elements import stat_card
 
@@ -19,9 +21,9 @@ def vista_admin() -> rx.Component:
 def vista_docente() -> rx.Component:
     return rx.vstack(
         rx.grid(
-            stat_card("Mis Grupos", "4", "users", "#4f46e5"),
-            stat_card("Tareas para Corregir", "12", "clock", "#d97706"),
-            stat_card("Tareas Activas", "5", "book-open", "#0891b2"),
+            stat_card("Mis Grupos", valor=GrupoState.total_mis_grupos.to_string(), icono="users", color_bg="#4f46e5", ruta="/mis-grupos"),
+            stat_card("Tareas para Corregir", valor=DashboardState.tareas_para_corregir, icono="clock", color_bg="#d97706"),
+            stat_card("Tareas Activas", valor=DashboardState.tareas_activas, icono="book-open", color_bg="#0891b2"),
             columns="3", spacing="5", width="100%"
         ),
         width="100%"
@@ -30,9 +32,9 @@ def vista_docente() -> rx.Component:
 def vista_estudiante() -> rx.Component:
     return rx.vstack(
         rx.grid(
-            stat_card("Tareas Pendientes", "3", "clipboard-list", "#d97706"),
-            stat_card("Tareas Completadas", "8", "circle-check", "#16a34a"),
-            stat_card("Mi Media", "8.2", "star", "#eab308"),
+            stat_card("Tareas Pendientes", valor=DashboardState.tareas_pendientes, icono="clipboard-list", color_bg="#d97706", ruta="/mis-tareas-estudiante"),
+            stat_card("Tareas Completadas", valor=DashboardState.tareas_completadas, icono="circle-check", color_bg="#16a34a", ruta="/mis-tareas-estudiante"),
+            stat_card("Mi Media", valor=DashboardState.mi_media, icono="star", color_bg="#eab308"),
             columns="3", spacing="5", width="100%"
         ),
         width="100%"

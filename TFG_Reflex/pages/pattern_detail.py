@@ -39,14 +39,14 @@ def panel_analisis() -> rx.Component:
         rx.cond(
             PatternDetailState.patron_actual["ventajas"] != "",
             rx.card(
-                rx.vstack(rx.hstack(rx.icon("check-circle-2", color="#16a34a"), rx.heading("Ventajas", size="4", color="#166534")), rx.divider(), rx.text(PatternDetailState.patron_actual["ventajas"], color="#374151", white_space="pre-wrap")),
+                rx.vstack(rx.hstack(rx.icon("circle-check-big", color="#16a34a"), rx.heading("Ventajas", size="4", color="#166534")), rx.divider(), rx.text(PatternDetailState.patron_actual["ventajas"], color="#374151", white_space="pre-wrap")),
                 background_color="#f0fdf4", border="1px solid #bbf7d0", width="100%"
             )
         ),
         rx.cond(
             PatternDetailState.patron_actual["desventajas"] != "",
             rx.card(
-                rx.vstack(rx.hstack(rx.icon("x-circle", color="#dc2626"), rx.heading("Desventajas", size="4", color="#991b1b")), rx.divider(), rx.text(PatternDetailState.patron_actual["desventajas"], color="#374151", white_space="pre-wrap")),
+                rx.vstack(rx.hstack(rx.icon("circle-x", color="#dc2626"), rx.heading("Desventajas", size="4", color="#991b1b")), rx.divider(), rx.text(PatternDetailState.patron_actual["desventajas"], color="#374151", white_space="pre-wrap")),
                 background_color="#fef2f2", border="1px solid #fecaca", width="100%"
             )
         ),
@@ -84,6 +84,96 @@ def panel_implementacion() -> rx.Component:
         ),
         width="100%", padding="2em", background_color="white", border="1px solid #e5e7eb", border_radius="8px", border_top_left_radius="0"
     )
+
+def render_relacion(rel: rx.Var) -> rx.Component:
+    color_cat = rx.match(
+        rel["categoria"],
+        ("Creacionales", "green"),
+        ("Estructurales", "blue"),
+        ("De Comportamiento", "orange"),
+        "gray"
+    )
+    return rx.link(
+        rx.card(
+            rx.hstack(
+                rx.center(
+                    rx.icon(
+                        rx.cond(rel["direccion"] == "saliente", "arrow-right", "arrow-left"),
+                        size=20,
+                        color="white",
+                    ),
+                    background_color="#4f46e5",
+                    border_radius="8px",
+                    width="40px",
+                    height="40px",
+                    flex_shrink="0",
+                ),
+                rx.vstack(
+                    rx.text(rel["nombre"], weight="bold", size="3", color="#111827"),
+                    rx.badge(rel["categoria"], color_scheme=color_cat, variant="soft", size="1"),
+                    spacing="1",
+                    align_items="start",
+                ),
+                rx.spacer(),
+                rx.badge(
+                    rel["nombre_relacion"],
+                    color_scheme="indigo",
+                    variant="outline",
+                    size="1",
+                ),
+                align="center",
+                spacing="3",
+                width="100%",
+            ),
+            width="100%",
+            cursor="pointer",
+            _hover={
+                "border_color": "#a5b4fc",
+                "box_shadow": "0 4px 6px -1px rgba(79, 70, 229, 0.1)",
+                "transform": "translateY(-1px)",
+            },
+            transition="all 0.15s ease",
+            border="1px solid #e5e7eb",
+        ),
+        href=rx.cond(
+            rel["id"] != "",
+            "/patron/" + rel["id"],
+            "#",
+        ),
+        underline="none",
+        width="100%",
+    )
+
+
+def panel_relaciones() -> rx.Component:
+    return rx.cond(
+        PatternDetailState.patrones_relacionados.length() > 0,
+        rx.vstack(
+            rx.hstack(
+                rx.icon("git-branch", size=22, color="#4f46e5"),
+                rx.heading("Patrones Relacionados", size="5", color="#111827"),
+                align="center",
+                spacing="2",
+            ),
+            rx.divider(),
+            rx.vstack(
+                rx.foreach(
+                    PatternDetailState.patrones_relacionados,
+                    render_relacion,
+                ),
+                spacing="2",
+                width="100%",
+            ),
+            width="100%",
+            padding="2em",
+            background_color="white",
+            border="1px solid #e5e7eb",
+            border_radius="8px",
+            margin_top="1.5em",
+            spacing="4",
+        ),
+    )
+
 
 def contenido_detalle() -> rx.Component:
     return rx.cond(
@@ -166,6 +256,10 @@ def contenido_detalle() -> rx.Component:
                 width="100%",
                 color_scheme="indigo"
             ),
+
+            # Sección de Relaciones (debajo de las pestañas)
+            panel_relaciones(),
+
             width="100%", max_width="1200px", margin="0 auto"
         )
     )

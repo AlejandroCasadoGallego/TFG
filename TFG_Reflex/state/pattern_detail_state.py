@@ -11,6 +11,7 @@ class PatternDetailState(BaseState):
     
     patron_actual: dict = {}
     error_carga: bool = False
+    patrones_relacionados: list[dict[str, str]] = []
 
     def cargar_patron(self):
         id_url = self.router.page.params.get("id_patron", "")
@@ -41,11 +42,58 @@ class PatternDetailState(BaseState):
                     "activo": patron.activo
                 }
                 self.error_carga = False
+
+                from ..models.patrones import PatronRelacion
+                
+                relaciones_salientes = session.exec(
+                    sqlmodel.select(PatronRelacion).where(
+                        PatronRelacion.patron_origen_id == patron.id_patron
+                    )
+                ).all()
+                
+                relaciones_entrantes = session.exec(
+                    sqlmodel.select(PatronRelacion).where(
+                        PatronRelacion.patron_destino_id == patron.id_patron
+                    )
+                ).all()
+                
+                lista_rel = []
+                for rel in relaciones_salientes:
+                    otro = session.exec(
+                        sqlmodel.select(PatronDiseño).where(
+                            PatronDiseño.id_patron == rel.patron_destino_id
+                        )
+                    ).first()
+                    if otro:
+                        lista_rel.append({
+                            "id": str(otro.id_patron),
+                            "nombre": otro.nombre,
+                            "categoria": otro.categoria,
+                            "nombre_relacion": rel.nombre_relacion,
+                            "direccion": "saliente",
+                        })
+                
+                for rel in relaciones_entrantes:
+                    otro = session.exec(
+                        sqlmodel.select(PatronDiseño).where(
+                            PatronDiseño.id_patron == rel.patron_origen_id
+                        )
+                    ).first()
+                    if otro:
+                        lista_rel.append({
+                            "id": str(otro.id_patron),
+                            "nombre": otro.nombre,
+                            "categoria": otro.categoria,
+                            "nombre_relacion": rel.nombre_relacion,
+                            "direccion": "entrante",
+                        })
+                
+                self.patrones_relacionados = lista_rel
             else:
                 self.error_carga = True
 
     def toggle_estado_actual(self):
-        """Activa o desactiva el patrón desde la vista de detalle."""
+        
         if self.usuario_rol not in ["admin", "docente"]:
             return
             
@@ -69,15 +117,15 @@ class PatternDetailState(BaseState):
             if not texto:
                 return ""
             reemplazos = {
-                "…": "...",
-                "“": '"',
-                "”": '"',
-                "‘": "'",
-                "’": "'",
-                "–": "-",
-                "—": "-",
-                "\u200b": "",
-                "\xa0": " " 
+                "\u2026": "...",
+                "\u201c": '"',
+                "\u201d": '"',
+                "\u2018": "'",
+                "\u2019": "'",
+                "\u2013": "-",
+                "\u2014": "-",
+                "\r": "",
+                "\n": " " 
             }
             for original, seguro in reemplazos.items():
                 texto = texto.replace(original, seguro)
