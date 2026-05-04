@@ -18,6 +18,23 @@ def vista_admin() -> rx.Component:
         width="100%"
     )
 
+def render_alumno_dashboard(alumno: dict) -> rx.Component:
+    return rx.hstack(
+        rx.avatar(fallback=alumno["iniciales"], size="2", radius="full", color_scheme="indigo"),
+        rx.vstack(
+            rx.text(alumno["nombre"], weight="bold", size="2", color="#111827"),
+            rx.text(alumno["grupo"], size="1", color="#6b7280"),
+            spacing="0"
+        ),
+        rx.spacer(),
+        rx.button(
+            rx.icon("file-text", size=14), "Ver Informe",
+            size="1", variant="soft", color_scheme="blue", cursor="pointer",
+            on_click=rx.redirect(f"/informe-estudiante/{alumno['id']}")
+        ),
+        width="100%", padding="0.75em", border_bottom="1px solid #f3f4f6", align="center"
+    )
+
 def vista_docente() -> rx.Component:
     return rx.vstack(
         rx.grid(
@@ -26,15 +43,41 @@ def vista_docente() -> rx.Component:
             stat_card("Tareas Activas", valor=DashboardState.tareas_activas, icono="book-open", color_bg="#0891b2"),
             columns="3", spacing="5", width="100%"
         ),
+        
+        rx.card(
+            rx.vstack(
+                rx.text("Mis Alumnos", weight="bold", size="4", color="#111827"),
+                rx.text("Acceso rápido a los informes de tus estudiantes.", color="#6b7280", size="2"),
+                rx.divider(margin_y="1em"),
+                
+                rx.cond(
+                    DashboardState.alumnos_docente.length() > 0,
+                    rx.box(
+                        rx.vstack(
+                            rx.foreach(DashboardState.alumnos_docente, render_alumno_dashboard),
+                            width="100%", spacing="0"
+                        ),
+                        max_height="300px", overflow="auto"
+                    ),
+                    rx.center(
+                        rx.text("No tienes alumnos en tus grupos.", color="#6b7280", font_style="italic"),
+                        padding="2em"
+                    )
+                ),
+                width="100%", align_items="start"
+            ),
+            width="100%", margin_top="2em", box_shadow="sm", border="1px solid #e5e7eb", background_color="white"
+        ),
+        
         width="100%"
     )
 
 def vista_estudiante() -> rx.Component:
     return rx.vstack(
         rx.grid(
-            stat_card("Tareas Pendientes", valor=DashboardState.tareas_pendientes, icono="clipboard-list", color_bg="#d97706", ruta="/mis-tareas-estudiante"),
-            stat_card("Tareas Completadas", valor=DashboardState.tareas_completadas, icono="circle-check", color_bg="#16a34a", ruta="/mis-tareas-estudiante"),
-            stat_card("Mi Media", valor=DashboardState.mi_media, icono="star", color_bg="#eab308"),
+            stat_card("Tareas Pendientes", "3", "clipboard-list", "#d97706"),
+            stat_card("Tareas Completadas", "8", "circle-check", "#16a34a"),
+            stat_card("Mi Media", "8.2", "star", "#eab308"),
             columns="3", spacing="5", width="100%"
         ),
         width="100%"

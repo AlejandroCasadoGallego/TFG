@@ -11,10 +11,11 @@ from ..models.evaluacion import ResolucionTarea, RespuestaPregunta
 from ..models.usuarios import Usuario
 
 class PreguntaResolucionUI(rx.Base):
-    id: int = -1
+    id: str = ""
     enunciado: str = ""
     tipo: str = ""
     opciones: List[str] = []
+    respuesta_actual: str = ""
 
 class TareaResolucionUI(rx.Base):
     id_tarea: int = -1
@@ -27,8 +28,7 @@ class ResolverTareaState(BaseState):
     tarea_actual: TareaResolucionUI = TareaResolucionUI()
     es_prueba: bool = False
     preguntas: List[PreguntaResolucionUI] = []
-    
-    respuestas: Dict[int, str] = {}
+
     
     
     tiempo_restante_segundos: int = 0
@@ -37,6 +37,7 @@ class ResolverTareaState(BaseState):
     error_carga: str = ""
 
     def cargar_tarea(self):
+        self.error_carga = ""
         id_str = self.router.page.params.get("id_tarea", "")
         if not id_str:
             self.error_carga = "ID de tarea no proporcionado."
@@ -88,15 +89,12 @@ class ResolverTareaState(BaseState):
             
             self.preguntas = [
                 PreguntaResolucionUI(
-                    id=p.id,
+                    id=str(p.id),
                     enunciado=p.enunciado or "",
                     tipo=p.tipo or "",
                     opciones=p.opciones or []
                 ) for p in preguntas_db
             ]
-
-            
-            self.respuestas = {p.id: "" for p in self.preguntas}
 
             
             resolucion = session.exec(
@@ -132,7 +130,9 @@ class ResolverTareaState(BaseState):
                 prueba = session.exec(sqlmodel.select(PruebaEvaluacion).where(PruebaEvaluacion.tarea_id == self.tarea_id)).first()
                 if prueba:
                     self.es_prueba = True
-                    self.tiempo_restante_segundos = prueba.tiempoLimite * 60
+                    tiempo_limite_seg = prueba.tiempoLimite * 60
+                    tiempo_hasta_fin = (tarea_db.fechaFin - datetime.now()).total_seconds()
+                    self.tiempo_restante_segundos = int(min(tiempo_limite_seg, max(0, tiempo_hasta_fin)))
                     self.timer_running = True
                     return ResolverTareaState.tick_timer
                 else:
@@ -144,23 +144,23 @@ class ResolverTareaState(BaseState):
                     sqlmodel.select(RespuestaPregunta).where(RespuestaPregunta.resolucion_id == resolucion.id)
                 ).all()
                 for r in respuestas_bd:
-                    if r.respuesta_diagrama and not r.respuesta:
-                        self.respuestas[r.pregunta_id] = r.respuesta_diagrama
-                    else:
-                        self.respuestas[r.pregunta_id] = r.respuesta or ""
+                    for i, p in enumerate(self.preguntas):
+                        if p.id == str(r.pregunta_id):
+                            if r.respuesta_diagrama and not r.respuesta:
+                                self.preguntas[i].respuesta_actual = r.respuesta_diagrama
+                            else:
+                                self.preguntas[i].respuesta_actual = r.respuesta or ""
+                            break
 
                 prueba = session.exec(sqlmodel.select(PruebaEvaluacion).where(PruebaEvaluacion.tarea_id == self.tarea_id)).first()
                 if prueba:
                     self.es_prueba = True
                     
-                    
-                    
-                    
-                    
-                    
-                    
                     tiempo_transcurrido = (datetime.now() - resolucion.fechaEntrega).total_seconds()
-                    restante = (prueba.tiempoLimite * 60) - tiempo_transcurrido
+                    restante_por_limite = (prueba.tiempoLimite * 60) - tiempo_transcurrido
+                    restante_por_fecha = (tarea_db.fechaFin - datetime.now()).total_seconds()
+                    restante = min(restante_por_limite, restante_por_fecha)
+                    
                     if restante <= 0:
                         self.tiempo_restante_segundos = 0
                         self.timer_running = False
@@ -175,13 +175,14 @@ class ResolverTareaState(BaseState):
                     self.timer_running = False
 
     async def tick_timer(self):
-        while self.timer_running:
-            await asyncio.sleep(1)
-            self.tiempo_restante_segundos -= 1
-            if self.tiempo_restante_segundos <= 0:
-                yield self.finalizar_tarea(timeout=True)
-                break
-            yield
+        await asyncio.sleep(1)
+        if not self.timer_running:
+            return
+        self.tiempo_restante_segundos -= 1
+        if self.tiempo_restante_segundos <= 0:
+            self.timer_running = False
+            return self.finalizar_tarea(timeout=True)
+        return ResolverTareaState.tick_timer
 
     @rx.var
     def tiempo_formateado(self) -> str:
@@ -189,12 +190,28 @@ class ResolverTareaState(BaseState):
         segundos = self.tiempo_restante_segundos % 60
         return f"{minutos:02d}:{segundos:02d}"
 
-    def set_respuesta(self, pregunta_id: int, valor: str):
-        self.respuestas[pregunta_id] = valor
+    def set_respuesta(self, pregunta_id: str, valor: str):
+        try:
+            new_preguntas = []
+            for p in self.preguntas:
+                if p.id == pregunta_id:
+                    new_preguntas.append(
+                        PreguntaResolucionUI(
+                            id=p.id,
+                            enunciado=p.enunciado,
+                            tipo=p.tipo,
+                            opciones=list(p.opciones),
+                            respuesta_actual=valor,
+                        )
+                    )
+                else:
+                    new_preguntas.append(p)
+            self.preguntas = new_preguntas
+        except Exception as e:
+            print(f"Error en set_respuesta: {e}")
 
-    def set_diagrama(self, pregunta_id: int, elements: str):
-        
-        self.respuestas[pregunta_id] = elements
+    def set_diagrama(self, pregunta_id: str, elements: str):
+        self.set_respuesta(pregunta_id, elements)
 
     def finalizar_tarea(self, timeout: bool = False):
         if not self.usuario_actual or self.tarea_id == -1:
@@ -225,11 +242,11 @@ class ResolverTareaState(BaseState):
 
             
             for p in self.preguntas:
-                valor = self.respuestas.get(p.id, "")
+                valor = p.respuesta_actual
                 
                 nueva_res = RespuestaPregunta(
                     resolucion_id=resolucion.id,
-                    pregunta_id=p.id,
+                    pregunta_id=int(p.id),
                     calificacion=0.0
                 )
                 

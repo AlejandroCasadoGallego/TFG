@@ -203,6 +203,17 @@ def contenido_detalle() -> rx.Component:
                 rx.hstack(
                     rx.button(rx.icon("download", size=18), "Descargar PDF", on_click=PatternDetailState.descargar_pdf, color_scheme="gray", variant="surface", cursor="pointer"),
                     rx.cond(
+                        (PatternDetailState.patron_actual["diagrama"] != "") & (PatternDetailState.patron_actual["diagrama"] != "/placeholder.png"),
+                        rx.button(
+                            rx.icon("image-down", size=18), 
+                            "Descargar Imagen", 
+                            on_click=PatternDetailState.descargar_imagen, 
+                            color_scheme="gray", 
+                            variant="surface", 
+                            cursor="pointer"
+                        )
+                    ),
+                    rx.cond(
                         (BaseState.usuario_rol == "admin") | (BaseState.usuario_rol == "docente"),
                         rx.hstack(
                             rx.button(rx.icon("pencil", size=18), "Modificar", on_click=rx.redirect(f"/editar-patron/{PatternDetailState.patron_actual['id']}"), color_scheme="indigo", variant="solid", cursor="pointer"),
@@ -257,7 +268,6 @@ def contenido_detalle() -> rx.Component:
                 color_scheme="indigo"
             ),
 
-            # Sección de Relaciones (debajo de las pestañas)
             panel_relaciones(),
 
             width="100%", max_width="1200px", margin="0 auto"

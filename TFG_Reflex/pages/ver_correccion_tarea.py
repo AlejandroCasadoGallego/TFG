@@ -1,13 +1,15 @@
 import reflex as rx
-from ..state.evaluar_tarea_state import EvaluarTareaState, RespuestaUI
+from ..state.ver_correccion_state import VerCorreccionState, RespuestaCorregidaUI
 from ..components.layout import sidebar_layout, header_component
 
-def render_respuesta(respuesta: RespuestaUI) -> rx.Component:
+def render_respuesta_corregida(respuesta: RespuestaCorregidaUI) -> rx.Component:
     return rx.card(
         rx.vstack(
             rx.hstack(
                 rx.badge(f"Pregunta {respuesta.numero}", color_scheme="indigo", variant="soft"),
                 rx.badge(respuesta.tipo, color_scheme="gray", variant="surface"),
+                rx.spacer(),
+                rx.badge(f"{respuesta.calificacion} / {respuesta.calificacion_maxima} pts", color_scheme="green", variant="solid"),
                 width="100%",
                 align="center",
                 spacing="2",
@@ -16,7 +18,7 @@ def render_respuesta(respuesta: RespuestaUI) -> rx.Component:
             
             rx.divider(margin_y="0.5em"),
             
-            rx.text("Respuesta del alumno:", size="2", color="#374151", weight="bold"),
+            rx.text("Tu respuesta:", size="2", color="#374151", weight="bold"),
             
             rx.cond(
                 respuesta.respuesta_diagrama != "",
@@ -43,37 +45,21 @@ def render_respuesta(respuesta: RespuestaUI) -> rx.Component:
                         border_radius="8px",
                         border="1px solid #e5e7eb",
                     ),
-                    rx.text("El alumno no ha respondido a esta pregunta.", size="2", color="#9ca3af", font_style="italic")
+                    rx.text("No has respondido a esta pregunta.", size="2", color="#9ca3af", font_style="italic")
                 )
             ),
             
             rx.divider(margin_y="0.5em"),
             
             rx.vstack(
-                rx.hstack(
-                    rx.text("Calificación:", size="2", color="#111827", weight="bold"),
-                    rx.input(
-                        type="number", 
-                        min="0", max=respuesta.calificacion_maxima.to_string(), step="0.1",
-                        value=respuesta.calificacion.to_string(),
-                        on_change=lambda v: EvaluarTareaState.actualizar_calificacion(respuesta.id_pregunta, v),
-                        width="100px",
-                        border="1px solid #d1d5db",
-                        background_color="white",
-                        color="#111827",
-                    ),
-                    rx.text(f"/ {respuesta.calificacion_maxima}", size="2", color="#6b7280"),
-                    align="center", spacing="2"
-                ),
-                rx.text("Retroalimentación (opcional):", size="2", color="#111827", weight="bold"),
-                rx.text_area(
-                    placeholder="Escribe comentarios o sugerencias sobre la respuesta...",
-                    value=respuesta.retroalimentacion,
-                    on_change=lambda v: EvaluarTareaState.actualizar_retroalimentacion(respuesta.id_pregunta, v),
+                rx.text("Comentarios del profesor:", size="2", color="#111827", weight="bold"),
+                rx.box(
+                    rx.text(respuesta.retroalimentacion, size="2", color="#111827", white_space="pre-wrap"),
                     width="100%",
-                    border="1px solid #d1d5db",
-                    background_color="white",
-                    color="#111827",
+                    padding="1em",
+                    background_color="#f0fdf4",
+                    border_radius="8px",
+                    border="1px solid #bbf7d0",
                 ),
                 spacing="2", width="100%"
             ),
@@ -89,14 +75,14 @@ def render_respuesta(respuesta: RespuestaUI) -> rx.Component:
         box_shadow="sm",
     )
 
-def contenido_evaluacion() -> rx.Component:
+def contenido_correccion() -> rx.Component:
     return rx.cond(
-        EvaluarTareaState.error_carga,
+        VerCorreccionState.error_carga,
         rx.center(
             rx.vstack(
                 rx.icon("file-warning", size=48, color="#ef4444"),
-                rx.heading("Resolución no encontrada", size="6", color="#111827"),
-                rx.text("No se pudo cargar la entrega del alumno o no tienes permiso para verla.", color="#6b7280"),
+                rx.heading("Corrección no encontrada", size="6", color="#111827"),
+                rx.text("No se pudo cargar la corrección o aún no ha sido evaluada.", color="#6b7280"),
                 rx.button(
                     "Volver a mis tareas", 
                     on_click=rx.redirect("/mis-tareas"), 
@@ -112,9 +98,9 @@ def contenido_evaluacion() -> rx.Component:
         rx.vstack(
             rx.button(
                 rx.icon("arrow-left", size=16),
-                "Volver a los detalles de la tarea",
+                "Volver a mis tareas",
                 color="#4b5563",
-                on_click=rx.redirect(f"/tarea/{EvaluarTareaState.id_tarea_actual}"),
+                on_click=rx.redirect("/mis-tareas"),
                 variant="ghost",
                 color_scheme="gray",
                 cursor="pointer",
@@ -124,26 +110,28 @@ def contenido_evaluacion() -> rx.Component:
             rx.box(
                 rx.vstack(
                     rx.hstack(
-                        rx.icon("file-check", size=24, color="#4f46e5"),
-                        rx.heading("Resolución de Tarea", size="6", color="#111827"),
+                        rx.icon("award", size=28, color="#10b981"),
+                        rx.heading("Corrección: " + VerCorreccionState.titulo_tarea, size="7", color="#111827"),
                         align="center",
                         spacing="2",
                     ),
+                    rx.text(VerCorreccionState.descripcion_tarea, color="#4b5563", size="3"),
                     rx.divider(margin_y="0.5em"),
                     rx.grid(
                         rx.box(
-                            rx.text("Tarea", size="1", color="#6b7280", weight="bold"),
-                            rx.text(EvaluarTareaState.titulo_tarea, size="3", color="#111827", weight="medium"),
-                        ),
-                        rx.box(
-                            rx.text("Estudiante", size="1", color="#6b7280", weight="bold"),
-                            rx.text(EvaluarTareaState.nombre_estudiante, size="3", color="#111827", weight="medium"),
-                        ),
-                        rx.box(
                             rx.text("Fecha de entrega", size="1", color="#6b7280", weight="bold"),
-                            rx.text(EvaluarTareaState.fecha_entrega, size="3", color="#111827", weight="medium"),
+                            rx.text(VerCorreccionState.fecha_entrega, size="3", color="#111827", weight="medium"),
                         ),
-                        columns={"initial": "1", "sm": "3"},
+                        rx.box(
+                            rx.text("Calificación Total", size="1", color="#6b7280", weight="bold"),
+                            rx.badge(
+                                f"{VerCorreccionState.calificacion_total} / {VerCorreccionState.calificacion_maxima_total}",
+                                size="3",
+                                color_scheme="green",
+                                variant="solid"
+                            ),
+                        ),
+                        columns={"initial": "1", "sm": "2"},
                         spacing="4",
                         width="100%",
                     ),
@@ -159,41 +147,17 @@ def contenido_evaluacion() -> rx.Component:
             ),
             
             rx.cond(
-                EvaluarTareaState.respuestas.length() > 0,
+                VerCorreccionState.respuestas.length() > 0,
                 rx.vstack(
-                    rx.foreach(EvaluarTareaState.respuestas, render_respuesta),
+                    rx.foreach(VerCorreccionState.respuestas, render_respuesta_corregida),
                     width="100%",
                     spacing="4",
                 ),
                 rx.center(
-                    rx.vstack(
-                        rx.icon("info", size=40, color="#9ca3af"),
-                        rx.text("No se encontraron respuestas para esta tarea.", color="#6b7280", size="2"),
-                        align="center",
-                    ),
+                    rx.text("No se encontraron respuestas para esta tarea.", color="#6b7280", size="2"),
                     width="100%",
                     padding="3em",
                 ),
-            ),
-            
-            rx.box(
-                rx.button(
-                    rx.icon("circle-check", size=20),
-                    "Calificar Tarea",
-                    size="3",
-                    color_scheme="green",
-                    variant="solid",
-                    cursor="pointer",
-                    width="100%",
-                    on_click=EvaluarTareaState.calificar_tarea,
-                ),
-                width="100%",
-                padding="1.5em",
-                margin_top="2em",
-                background_color="white",
-                border="1px solid #e5e7eb",
-                border_radius="8px",
-                box_shadow="sm",
             ),
             
             width="100%",
@@ -203,14 +167,14 @@ def contenido_evaluacion() -> rx.Component:
         ),
     )
 
-@rx.page(route="/evaluar-resolucion/[id_tarea]/[id_estudiante]", on_load=EvaluarTareaState.cargar_resolucion)
-def evaluar_tarea_page() -> rx.Component:
+
+def ver_correccion_page() -> rx.Component:
     return rx.flex(
         sidebar_layout(),
         rx.box(
             rx.vstack(
-                header_component(titulo="Evaluar Resolución"),
-                contenido_evaluacion(),
+                header_component(titulo="Ver Corrección"),
+                contenido_correccion(),
                 width="100%",
                 padding="3em",
             ),

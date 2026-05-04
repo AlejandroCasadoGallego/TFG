@@ -90,6 +90,60 @@ def estudiante_tareas_page() -> rx.Component:
                     )
                 ),
                 
+                rx.divider(margin_y="2em"),
+                
+                rx.hstack(
+                    rx.vstack(
+                        rx.heading("Tareas Corregidas", size="6", weight="bold", color="#111827"),
+                        rx.text("Tareas que ya han sido evaluadas por tu profesor.", color="#6b7280", size="3"),
+                    ),
+                    rx.spacer(),
+                    width="100%", align="center", margin_bottom="1em"
+                ),
+                
+                rx.cond(
+                    EstudianteTareasState.tareas_corregidas.length() > 0,
+                    rx.grid(
+                        rx.foreach(EstudianteTareasState.tareas_corregidas, lambda t: rx.card(
+                            rx.vstack(
+                                rx.hstack(
+                                    rx.icon("file-check", color="#10b981", size=24),
+                                    rx.heading(t.titulo, size="5", weight="bold", color="#111827"),
+                                    rx.spacer(),
+                                    rx.badge("Corregida", color_scheme="green", variant="soft"),
+                                    align="center",
+                                    spacing="3",
+                                    width="100%"
+                                ),
+                                rx.divider(margin_y="0.5em"),
+                                rx.text(t.descripcion, size="2", color="#4b5563", margin_bottom="1em"),
+                                rx.box(
+                                    rx.button(
+                                        "Ver Corrección",
+                                        on_click=lambda: EstudianteTareasState.ir_a_correccion(t.id_tarea),
+                                        color_scheme="green",
+                                        variant="soft",
+                                        width="100%",
+                                        margin_top="1em",
+                                        cursor="pointer"
+                                    )
+                                ),
+                                align_items="start",
+                                width="100%"
+                            ),
+                            width="100%",
+                            box_shadow="sm",
+                            border="1px solid #10b981",
+                            background_color="#f0fdf4",
+                            padding="1.5em"
+                        )),
+                        columns={"initial": "1", "sm": "2", "md": "3"},
+                        spacing="5",
+                        width="100%"
+                    ),
+                    rx.text("Aún no tienes tareas corregidas.", color="#6b7280", font_style="italic")
+                ),
+                
                 padding="3em", max_width="1000px", margin="0 auto", width="100%"
             ),
             flex="1", height="100vh", background_color="#f9fafb", overflow="auto"

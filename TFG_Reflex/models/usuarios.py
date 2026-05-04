@@ -16,6 +16,7 @@ class Usuario(sqlmodel.SQLModel, table=True):
     contraseñaHash: str
     rol: str
     activo: bool = sqlmodel.Field(default=True)
+    fecha_desactivacion: Optional[datetime] = sqlmodel.Field(default=None)
     debe_cambiar_pass: bool = sqlmodel.Field(default=False)
 
 class EstudianteGrupo(rx.Model, table=True):

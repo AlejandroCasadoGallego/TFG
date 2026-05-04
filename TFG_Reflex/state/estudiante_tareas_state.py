@@ -14,6 +14,7 @@ class EstudianteTareaUI(rx.Base):
 
 class EstudianteTareasState(BaseState):
     tareas: List[EstudianteTareaUI] = []
+    tareas_corregidas: List[EstudianteTareaUI] = []
 
     def cargar_tareas(self):
         if not self.usuario_actual:
@@ -30,23 +31,21 @@ class EstudianteTareasState(BaseState):
 
             ahora = datetime.now()
 
+            # Todas las asignaciones
             statement = (
                 sqlmodel.select(Tarea, EstudianteTarea)
                 .join(EstudianteTarea, Tarea.id_tarea == EstudianteTarea.id_tarea)
-                .where(
-                    (EstudianteTarea.id_estudiante == estudiante.id_usuario) &
-                    (Tarea.fechaFin >= ahora)
-                )
-                .order_by(Tarea.fechaFin.asc())
+                .where(EstudianteTarea.id_estudiante == estudiante.id_usuario)
             )
             
             resultados = session.exec(statement).all()
 
             lista_tareas = []
+            lista_corregidas = []
+            
             for tarea, estudiante_tarea in resultados:
                 ejercicio = session.exec(sqlmodel.select(Ejercicio).where(Ejercicio.tarea_id == tarea.id_tarea)).first()
                 prueba = session.exec(sqlmodel.select(PruebaEvaluacion).where(PruebaEvaluacion.tarea_id == tarea.id_tarea)).first()
-                
                 
                 resolucion = session.exec(
                     sqlmodel.select(ResolucionTarea).where(
@@ -55,26 +54,34 @@ class EstudianteTareasState(BaseState):
                     )
                 ).first()
 
-                permite_reintentos = False
-                if ejercicio:
-                    permite_reintentos = ejercicio.permiteReintentos
-                
-                
-                if resolucion and not permite_reintentos:
-                    continue
-
                 tipo = "Ejercicio" if ejercicio else "Prueba" if prueba else "Tarea"
 
-                lista_tareas.append(EstudianteTareaUI(
+                tarea_ui = EstudianteTareaUI(
                     id_tarea=str(tarea.id_tarea),
                     titulo=tarea.titulo,
                     descripcion=tarea.descripcion if tarea.descripcion else "Sin descripción",
                     estado=estudiante_tarea.estado.capitalize(),
                     fechas=f"Hasta {tarea.fechaFin.strftime('%d/%m/%Y %H:%M')}",
                     tipo=tipo
-                ))
+                )
+
+                if resolucion and resolucion.estado == "corregida":
+                    lista_corregidas.append(tarea_ui)
+                elif tarea.fechaFin >= ahora:
+                    permite_reintentos = False
+                    if ejercicio:
+                        permite_reintentos = ejercicio.permiteReintentos
+                    
+                    if resolucion and not permite_reintentos:
+                        pass
+                    else:
+                        lista_tareas.append(tarea_ui)
             
-            self.tareas = lista_tareas
+            self.tareas = sorted(lista_tareas, key=lambda t: t.fechas)
+            self.tareas_corregidas = sorted(lista_corregidas, key=lambda t: t.fechas)
 
     def ir_a_tarea(self, id_tarea: str):
         return rx.redirect(f"/resolver-tarea/{id_tarea}")
+        
+    def ir_a_correccion(self, id_tarea: str):
+        return rx.redirect(f"/ver-correccion/{id_tarea}")

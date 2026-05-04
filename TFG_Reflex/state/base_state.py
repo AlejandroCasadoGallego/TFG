@@ -37,9 +37,57 @@ class BaseState(rx.State):
         self.usuario_rol = ""
         return rx.redirect("/")
 
+    def limpiar_cuentas_desactivadas(self):
+        with rx.session() as session:
+            from ..models.usuarios import Usuario
+            from datetime import datetime, timedelta
+            
+            hace_15_dias = datetime.utcnow() - timedelta(days=15)
+            usuarios_a_borrar = session.exec(
+                sqlmodel.select(Usuario).where(
+                    (Usuario.activo == False) & 
+                    (Usuario.fecha_desactivacion != None) & 
+                    (Usuario.fecha_desactivacion <= hace_15_dias)
+                )
+            ).all()
+
+            for usuario in usuarios_a_borrar:
+                session.delete(usuario)
+            
+            if usuarios_a_borrar:
+                session.commit()
+
     def check_login(self):
         if not self.usuario_actual:
             return rx.redirect("/")
+        self.comprobar_notificaciones()
+        
+    def check_admin(self):
+        if not self.usuario_actual:
+            return rx.redirect("/")
+        if self.usuario_rol != "admin":
+            return rx.redirect("/dashboard")
+        self.comprobar_notificaciones()
+        
+    def check_docente(self):
+        if not self.usuario_actual:
+            return rx.redirect("/")
+        if self.usuario_rol != "docente":
+            return rx.redirect("/dashboard")
+        self.comprobar_notificaciones()
+        
+    def check_docente_or_admin(self):
+        if not self.usuario_actual:
+            return rx.redirect("/")
+        if self.usuario_rol not in ["docente", "admin"]:
+            return rx.redirect("/dashboard")
+        self.comprobar_notificaciones()
+        
+    def check_estudiante(self):
+        if not self.usuario_actual:
+            return rx.redirect("/")
+        if self.usuario_rol != "estudiante":
+            return rx.redirect("/dashboard")
         self.comprobar_notificaciones()
     
     def _hash_password(self, password: str) -> str:

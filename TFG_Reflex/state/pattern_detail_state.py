@@ -190,6 +190,28 @@ class PatternDetailState(BaseState):
 
         pdf_bytes = bytes(pdf.output()) 
         
-        nombre_archivo = f"{self.patron_actual['nombre'].replace(' ', '_')}.pdf"
+        nombre_archivo = f"Detalle_{self.patron_actual['nombre'].replace(' ', '_')}.pdf"
         
         return rx.download(data=pdf_bytes, filename=nombre_archivo)
+
+    async def descargar_imagen(self):
+        if not self.patron_actual:
+            return rx.window_alert("No hay un patrón cargado.")
+            
+        diagrama = self.patron_actual.get("diagrama", "")
+        
+        if not diagrama or diagrama == "/placeholder.png":
+            return rx.window_alert("Este patrón no tiene una imagen asociada para descargar.")
+            
+        if not diagrama.startswith("data:image/"):
+            return rx.window_alert("La imagen almacenada no es válida o está corrupta.")
+            
+        try:
+            header, encoded = diagrama.split(",", 1)
+            img_bytes = base64.b64decode(encoded)
+            
+            nombre = self.patron_actual.get("nombre", "Patron")
+            nombre_archivo = f"Imagen_{nombre.replace(' ', '_')}.png"
+            return rx.download(data=img_bytes, filename=nombre_archivo)
+        except Exception:
+            return rx.window_alert("Error procesando la descarga de la imagen.")

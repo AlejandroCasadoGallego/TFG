@@ -57,6 +57,23 @@ class ProfileState(BaseState):
 
             cambio_pass = False
             if self.edit_pass.strip():
+                import re
+                pwd = self.edit_pass
+                if len(pwd) < 8:
+                    self.error_edicion = "La contraseña debe tener al menos 8 caracteres."
+                    return
+                if not re.search(r'[A-Z]', pwd):
+                    self.error_edicion = "La contraseña debe contener al menos una letra mayúscula."
+                    return
+                if not re.search(r'[a-z]', pwd):
+                    self.error_edicion = "La contraseña debe contener al menos una letra minúscula."
+                    return
+                if not re.search(r'[0-9]', pwd):
+                    self.error_edicion = "La contraseña debe contener al menos un número."
+                    return
+                if not re.search(r'[!@#$%^&*()_+\-=\[\]{};\':"\\|,.<>\/?]', pwd):
+                    self.error_edicion = "La contraseña debe contener al menos un símbolo (ej: !@#$%)."
+                    return
                 nuevo_hash = self._hash_password(self.edit_pass)
                 if nuevo_hash == usuario.contraseñaHash:
                     self.error_edicion = "La nueva contraseña no puede ser igual a la actual."
@@ -87,7 +104,9 @@ class ProfileState(BaseState):
             with rx.session() as session:
                 usuario = session.exec(sqlmodel.select(Usuario).where(Usuario.id_usuario == self.datos_perfil["id"])).first()
                 if usuario:
+                    from datetime import datetime
                     usuario.activo = False
+                    usuario.fecha_desactivacion = datetime.utcnow()
                     session.add(usuario)
                     session.commit()
             

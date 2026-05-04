@@ -46,12 +46,12 @@ def login_page() -> rx.Component:
                 rx.text("Plataforma de Patrones de Diseño", color="#6b7280", margin_bottom="2em"),
                 rx.vstack(
                     rx.text("Correo Electrónico", size="2", weight="bold", color="#374151", width="100%"),
-                    rx.input(placeholder="admin@test.com", on_change=AuthState.set_correo_input, size="3", width="100%", variant="soft", color="#000000", background_color="#f3f4f6"),
+                    rx.input(placeholder="admin@test.com", on_change=AuthState.set_correo_input, on_key_down=AuthState.handle_key_login, size="3", width="100%", variant="soft", color="#000000", background_color="#f3f4f6"),
                     spacing="2", width="100%"
                 ),
                 rx.vstack(
                     rx.text("Contraseña", size="2", weight="bold", color="#374151", width="100%"),
-                    rx.input(type="password", placeholder="••••••••", on_change=AuthState.set_pass_input, size="3", width="100%", variant="soft", color="#000000", background_color="#f3f4f6"),
+                    rx.input(type="password", placeholder="••••••••", on_change=AuthState.set_pass_input, on_key_down=AuthState.handle_key_login, size="3", width="100%", variant="soft", color="#000000", background_color="#f3f4f6"),
                     spacing="2", width="100%", margin_top="1em"
                 ),
                 rx.cond(
@@ -74,9 +74,10 @@ def register_page() -> rx.Component:
                 rx.text("Crea tu cuenta para empezar a aprender", color="#6b7280", size="2", margin_bottom="1.5em"),
                 
                 rx.vstack(
-                    rx.input(placeholder="Nombre Completo", on_change=AuthState.set_nombre_input, width="100%", color="#111827", variant="surface"),
-                    rx.input(placeholder="Correo Electrónico", on_change=AuthState.set_correo_input, width="100%", color="#111827", variant="surface"),
-                    rx.input(type="password", placeholder="Contraseña", on_change=AuthState.set_pass_input, width="100%", color="#111827", variant="surface"),
+                    rx.input(placeholder="Nombre Completo", on_change=AuthState.set_nombre_input, on_key_down=AuthState.handle_key_registro, width="100%", color="#111827", variant="surface"),
+                    rx.input(placeholder="Correo Electrónico", on_change=AuthState.set_correo_input, on_key_down=AuthState.handle_key_registro, width="100%", color="#111827", variant="surface"),
+                    rx.input(type="password", placeholder="Contraseña", on_change=AuthState.set_pass_input, on_key_down=AuthState.handle_key_registro, width="100%", color="#111827", variant="surface"),
+                    rx.text("Mín. 8 caracteres, mayúsculas, minúsculas, números y un símbolo.", size="1", color="#9ca3af"),
                     spacing="3", width="100%"
                 ),
 
@@ -107,10 +108,11 @@ def primer_acceso_page() -> rx.Component:
                 
                 rx.vstack(
                     rx.text("Nueva Contraseña", weight="bold", size="2", color="#374151", width="100%"),
-                    rx.input(type="password", placeholder="••••••••", value=AuthState.pass_forzado_1, on_change=AuthState.set_pass_forzado_1, width="100%", background_color="white", color="#111827", border="1px solid #d1d5db"),
+                    rx.input(type="password", placeholder="••••••••", value=AuthState.pass_forzado_1, on_change=AuthState.set_pass_forzado_1, on_key_down=AuthState.handle_key_forzado, width="100%", background_color="white", color="#111827", border="1px solid #d1d5db"),
                     
                     rx.text("Repite la Contraseña", weight="bold", size="2", color="#374151", width="100%", margin_top="0.5em"),
-                    rx.input(type="password", placeholder="••••••••", value=AuthState.pass_forzado_2, on_change=AuthState.set_pass_forzado_2, width="100%", background_color="white", color="#111827", border="1px solid #d1d5db"),
+                    rx.input(type="password", placeholder="••••••••", value=AuthState.pass_forzado_2, on_change=AuthState.set_pass_forzado_2, on_key_down=AuthState.handle_key_forzado, width="100%", background_color="white", color="#111827", border="1px solid #d1d5db"),
+                    rx.text("Mín. 8 caracteres, mayúsculas, minúsculas, números y un símbolo.", size="1", color="#9ca3af"),
                     spacing="2", width="100%"
                 ),
 

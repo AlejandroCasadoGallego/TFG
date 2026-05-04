@@ -124,6 +124,7 @@ def sidebar_layout() -> rx.Component:
             rx.vstack(
                 sidebar_item("Inicio", "home", "/dashboard"),
                 sidebar_item("Biblioteca de Patrones", "layout-template", "/biblioteca"),
+                sidebar_item("Leyenda Diagramas", "book-open", "/leyenda-diagramas"),
                 
                 rx.match(
                     BaseState.usuario_rol,

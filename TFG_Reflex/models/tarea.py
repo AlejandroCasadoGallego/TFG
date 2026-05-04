@@ -46,6 +46,7 @@ class PruebaEvaluacion(rx.Model, table=True):
 class Pregunta(rx.Model, table=True):
     enunciado: str = sqlmodel.Field(sa_type=sqlmodel.Text)
     tipo: str 
+    calificacion_maxima: float = sqlmodel.Field(default=10.0)
     
     opciones: List[str] = sqlmodel.Field(default=[], sa_type=sqlmodel.JSON)
     respuestaCorrecta: str 

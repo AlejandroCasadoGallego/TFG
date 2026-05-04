@@ -11,6 +11,8 @@ class RespuestaUI(rx.Base):
     respuesta_texto: str
     respuesta_diagrama: str
     calificacion: float
+    calificacion_maxima: float
+    retroalimentacion: str = ""
 
 class EvaluarTareaState(BaseState):
     id_tarea_actual: str = ""
@@ -108,11 +110,97 @@ class EvaluarTareaState(BaseState):
                         respuesta_texto=respuesta_texto,
                         respuesta_diagrama=resp_diagrama,
                         calificacion=float(respuesta_alumno.calificacion) if respuesta_alumno else 0.0,
+                        calificacion_maxima=float(pregunta.calificacion_maxima) if hasattr(pregunta, 'calificacion_maxima') else 10.0,
+                        retroalimentacion=respuesta_alumno.retroalimentacion if respuesta_alumno and respuesta_alumno.retroalimentacion else ""
                     )
                 )
                 
             self.respuestas = lista_respuestas
 
+    def actualizar_calificacion(self, id_pregunta: str, valor: str):
+        temp_respuestas = self.respuestas.copy()
+        for i, resp in enumerate(temp_respuestas):
+            if resp.id_pregunta == id_pregunta:
+                try:
+                    calif = float(valor)
+                    dict_resp = resp.dict()
+                    dict_resp["calificacion"] = calif
+                    temp_respuestas[i] = RespuestaUI(**dict_resp)
+                except ValueError:
+                    pass
+                break
+        self.respuestas = temp_respuestas
+
+    def actualizar_retroalimentacion(self, id_pregunta: str, valor: str):
+        temp_respuestas = self.respuestas.copy()
+        for i, resp in enumerate(temp_respuestas):
+            if resp.id_pregunta == id_pregunta:
+                dict_resp = resp.dict()
+                dict_resp["retroalimentacion"] = valor
+                temp_respuestas[i] = RespuestaUI(**dict_resp)
+                break
+        self.respuestas = temp_respuestas
+
     def calificar_tarea(self):
-        
-        return rx.toast.info("Funcionalidad de calificación en desarrollo.", position="bottom-right")
+        # Validar calificaciones antes de grabar
+        for resp in self.respuestas:
+            if resp.calificacion > resp.calificacion_maxima:
+                return rx.toast.error(f"Error: La pregunta {resp.numero} tiene una nota de {resp.calificacion} superior al máximo permitido ({resp.calificacion_maxima}).", position="bottom-right")
+            if resp.calificacion < 0:
+                return rx.toast.error(f"Error: La pregunta {resp.numero} tiene una calificación negativa.", position="bottom-right")
+
+        id_tarea_int = int(self.id_tarea_actual)
+        id_estudiante_int = int(self.id_estudiante_actual)
+
+        with rx.session() as session:
+            from ..models.evaluacion import ResolucionTarea, RespuestaPregunta
+            from ..models.usuarios import Usuario, Notificacion
+            
+            resolucion = session.exec(
+                sqlmodel.select(ResolucionTarea)
+                .where((ResolucionTarea.tarea_id == id_tarea_int) & (ResolucionTarea.estudiante_id == id_estudiante_int))
+            ).first()
+            
+            if not resolucion:
+                return rx.toast.error("Error: Resolución no encontrada.")
+
+            total_calificacion = 0.0
+
+            for resp_ui in self.respuestas:
+                respuesta_bd = session.exec(
+                    sqlmodel.select(RespuestaPregunta)
+                    .where(
+                        (RespuestaPregunta.resolucion_id == resolucion.id) & 
+                        (RespuestaPregunta.pregunta_id == int(resp_ui.id_pregunta))
+                    )
+                ).first()
+                
+                if respuesta_bd:
+                    respuesta_bd.calificacion = resp_ui.calificacion
+                    respuesta_bd.retroalimentacion = resp_ui.retroalimentacion
+                    session.add(respuesta_bd)
+                    total_calificacion += resp_ui.calificacion
+
+            resolucion.calificacionTotal = total_calificacion
+            resolucion.estado = "corregida"
+            session.add(resolucion)
+
+            # Enviar notificacion al alumno
+            profesor = session.exec(sqlmodel.select(Usuario).where(Usuario.nombreUsuario == self.usuario_actual)).first()
+            if profesor:
+                mensaje = f"Tu tarea '{self.titulo_tarea}' ha sido corregida. Tu calificación es {total_calificacion:.2f}. Puedes consultarla en tus tareas."
+                notificacion = Notificacion(
+                    remitente_id=profesor.id_usuario,
+                    destinatario_id=id_estudiante_int,
+                    titulo=f"Tarea Corregida: {self.titulo_tarea}",
+                    mensaje=mensaje,
+                    leida=False
+                )
+                session.add(notificacion)
+
+            session.commit()
+
+        return [
+            rx.toast.success("Tarea evaluada correctamente.", position="bottom-right"),
+            rx.redirect(f"/tarea/{self.id_tarea_actual}")
+        ]

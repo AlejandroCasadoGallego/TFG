@@ -311,6 +311,11 @@ def render_miembro_actual(miembro: dict) -> rx.Component:
         rx.text(miembro["nombre"], size="2", color="#374151"),
         rx.spacer(),
         rx.button(
+            rx.icon("file-text", size=14), "Ver Informe",
+            size="1", variant="soft", color_scheme="blue", cursor="pointer",
+            on_click=rx.redirect(f"/informe-estudiante/{miembro['id']}")
+        ),
+        rx.button(
             rx.icon("user-minus", size=14), "Expulsar",
             size="1", variant="soft", color_scheme="red", cursor="pointer",
             on_click=lambda: GrupoState.expulsar_miembro(miembro["id"].to(int), miembro["nombre"])

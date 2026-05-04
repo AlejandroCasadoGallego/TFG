@@ -37,7 +37,9 @@ class AdminState(BaseState):
         with rx.session() as session:
             usuario = session.exec(sqlmodel.select(Usuario).where(Usuario.id_usuario == int(id_usuario_str))).first()
             if usuario:
+                from datetime import datetime
                 usuario.activo = not usuario.activo
+                usuario.fecha_desactivacion = datetime.utcnow() if not usuario.activo else None
                 session.add(usuario)
                 session.commit()
         self.cargar_docentes()
@@ -82,7 +84,9 @@ class AdminState(BaseState):
         with rx.session() as session:
             usuario = session.exec(sqlmodel.select(Usuario).where(Usuario.id_usuario == int(id_usuario_str))).first()
             if usuario:
+                from datetime import datetime
                 usuario.activo = not usuario.activo
+                usuario.fecha_desactivacion = datetime.utcnow() if not usuario.activo else None
                 session.add(usuario)
                 session.commit()
         self.cargar_estudiantes()

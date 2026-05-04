@@ -12,6 +12,7 @@ class PreguntaUI(rx.Base):
     opcion3: str = ""
     opcion4: str = ""
     correcta: str = ""
+    calificacion_maxima: str = "10.0"
 
 class TareaState(BaseState):
     editando_tarea_id: int = -1
@@ -241,12 +242,18 @@ class TareaState(BaseState):
                     opciones_finales = []
                     correcta_final = ""
 
+                try:
+                    calif_max = float(p.calificacion_maxima)
+                except ValueError:
+                    calif_max = 10.0
+
                 nueva_p = Pregunta(
                     enunciado=p.enunciado,
                     tipo=p.tipo,
                     opciones=opciones_finales,
                     respuestaCorrecta=correcta_final,
-                    tarea_id=nueva_tarea.id_tarea
+                    tarea_id=nueva_tarea.id_tarea,
+                    calificacion_maxima=calif_max
                 )
                 session.add(nueva_p)
 
@@ -372,6 +379,7 @@ class TareaState(BaseState):
                     opcion3=opciones[2],
                     opcion4=opciones[3],
                     correcta=pregunta.respuestaCorrecta or "",
+                    calificacion_maxima=str(pregunta.calificacion_maxima)
                 ))
 
             self.preguntas = preguntas_form if preguntas_form else [PreguntaUI()]
@@ -467,12 +475,19 @@ class TareaState(BaseState):
             preguntas_a_guardar = self.preguntas[:1] if self.tipo_tarea.lower() == "ejercicio" else self.preguntas
             for p in preguntas_a_guardar:
                 opciones_finales = [p.opcion1, p.opcion2, p.opcion3, p.opcion4] if p.tipo == "Test" else []
+                
+                try:
+                    calif_max = float(p.calificacion_maxima)
+                except ValueError:
+                    calif_max = 10.0
+                    
                 nueva_pregunta = Pregunta(
                     enunciado=p.enunciado,
                     tipo=p.tipo,
                     opciones=opciones_finales,
                     respuestaCorrecta=p.correcta if p.tipo == "Test" else "",
                     tarea_id=tarea.id_tarea,
+                    calificacion_maxima=calif_max
                 )
                 session.add(nueva_pregunta)
 
@@ -540,7 +555,8 @@ class TareaState(BaseState):
             opcion2="", 
             opcion3="", 
             opcion4="", 
-            correcta=""
+            correcta="",
+            calificacion_maxima="10.0"
         )]
 
     @rx.var

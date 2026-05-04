@@ -38,7 +38,7 @@ def modal_confirmar_entrega() -> rx.Component:
                 rx.dialog.close(
                     rx.button("Cancelar", variant="soft", color_scheme="gray", cursor="pointer")
                 ),
-                rx.button("Sí, Entregar", on_click=lambda: ResolverTareaState.finalizar_tarea(False), color_scheme="indigo", cursor="pointer"),
+                rx.button("Sí, Entregar", on_click=ResolverTareaState.finalizar_tarea(False), color_scheme="indigo", cursor="pointer"),
                 spacing="3",
                 margin_top="16px",
                 justify="end",
@@ -65,7 +65,7 @@ def renderizar_pregunta(pregunta: PreguntaResolucionUI) -> rx.Component:
                 rx.box(
                     rx.text_area(
                         placeholder="Escribe tu respuesta detallada aquí...",
-                        value=ResolverTareaState.respuestas[pregunta.id],
+                        value=pregunta.respuesta_actual,
                         on_change=lambda val: ResolverTareaState.set_respuesta(pregunta.id, val),
                         width="100%",
                         min_height="200px",
@@ -83,7 +83,7 @@ def renderizar_pregunta(pregunta: PreguntaResolucionUI) -> rx.Component:
                 rx.box(
                     rx.radio(
                         pregunta.opciones,
-                        value=ResolverTareaState.respuestas[pregunta.id],
+                        value=pregunta.respuesta_actual,
                         on_change=lambda val: ResolverTareaState.set_respuesta(pregunta.id, val),
                         direction="column",
                         spacing="3",
@@ -100,17 +100,42 @@ def renderizar_pregunta(pregunta: PreguntaResolucionUI) -> rx.Component:
                 
                 
                 rx.box(
-                    diagram_board(
-                        on_diagram_change=lambda elements: ResolverTareaState.set_diagrama(pregunta.id, elements),
-                        initial_data=ResolverTareaState.respuestas[pregunta.id],
-                        height="600px",
-                        width="100%"
+                    rx.vstack(
+                        rx.hstack(
+                            rx.link(
+                                rx.button(
+                                    rx.hstack(
+                                        rx.icon("book-open", size=16),
+                                        rx.text("Ver Leyenda UML"),
+                                        align="center", spacing="2"
+                                    ),
+                                    variant="outline",
+                                    color_scheme="indigo",
+                                    size="2",
+                                    cursor="pointer",
+                                ),
+                                href="/leyenda-diagramas",
+                                is_external=True,
+                            ),
+                            width="100%",
+                            justify="end",
+                        ),
+                        rx.box(
+                            diagram_board(
+                                on_diagram_change=lambda elements: ResolverTareaState.set_diagrama(pregunta.id, elements),
+                                initial_data=pregunta.respuesta_actual,
+                                height="600px",
+                                width="100%"
+                            ),
+                            height="600px",
+                            width="100%",
+                            border="2px solid #e5e7eb",
+                            border_radius="8px",
+                            overflow="hidden",
+                        ),
+                        spacing="2", width="100%"
                     ),
-                    height="600px",
                     width="100%",
-                    border="2px solid #e5e7eb",
-                    border_radius="8px",
-                    overflow="hidden",
                     display=rx.cond(
                         (pregunta.tipo == "Diagrama") | (pregunta.tipo == "diagrama"),
                         "block", "none"

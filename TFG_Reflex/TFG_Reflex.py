@@ -34,31 +34,42 @@ from .state.evaluar_tarea_state import EvaluarTareaState
 from .state.dashboard_state import DashboardState
 from .pages.mensajes_alumnos import mensajes_alumnos_page
 from .state.mensajes_state import MensajesState
+from .pages.ver_correccion_tarea import ver_correccion_page
+from .state.ver_correccion_state import VerCorreccionState
+from .pages.leyenda_diagramas import leyenda_diagramas_page
+from .pages.informe_estudiante import informe_estudiante_page
+from .state.informe_estudiante_state import InformeEstudianteState
 from .models import *
+
+#
 
 app = rx.App(
     theme=rx.theme(appearance="light", has_background=True, radius="large", accent_color="indigo"))
 
-app.add_page(landing_page, route="/")
+app.add_page(landing_page, route="/", on_load=BaseState.limpiar_cuentas_desactivadas)
 app.add_page(login_page, route="/login")
 app.add_page(register_page, route="/register")
 app.add_page(index_page, route="/dashboard", on_load=[BaseState.check_login, AdminState.cargar_estadisticas_admin, GrupoState.contar_mis_grupos, DashboardState.cargar_estadisticas_dashboard])
-app.add_page(perfil_page, route="/perfil", on_load=ProfileState.cargar_perfil)
+app.add_page(perfil_page, route="/perfil", on_load=[BaseState.check_login, ProfileState.cargar_perfil])
 app.add_page(editar_perfil_page, route="/editar-perfil", on_load=BaseState.check_login)
-app.add_page(gestion_docentes_page, route="/gestion-docentes", on_load=AdminState.cargar_docentes)
+app.add_page(gestion_docentes_page, route="/gestion-docentes", on_load=[BaseState.check_admin, AdminState.cargar_docentes])
 app.add_page(primer_acceso_page, route="/primer-acceso", on_load=BaseState.check_login)
-app.add_page(gestion_estudiantes_page, route="/gestion-estudiantes", on_load=AdminState.cargar_estudiantes)
+app.add_page(gestion_estudiantes_page, route="/gestion-estudiantes", on_load=[BaseState.check_admin, AdminState.cargar_estudiantes])
 app.add_page(biblioteca_page, route="/biblioteca", on_load=PatternsState.cargar_patrones)
-app.add_page(create_pattern_page, route="/crear-patron", on_load=BaseState.check_login)
+app.add_page(create_pattern_page, route="/crear-patron", on_load=BaseState.check_docente_or_admin)
 app.add_page(pattern_detail_page, route="/patron/[id_patron]", on_load=PatternDetailState.cargar_patron)
-app.add_page(edit_pattern_page, route="/editar-patron/[id_patron]", on_load=EditPatternState.cargar_datos)
-app.add_page(docente_grupos_page, route="/mis-grupos", on_load=[BaseState.check_login, GrupoState.cargar_grupos])
-app.add_page(estudiante_grupos_page, route="/mis-grupos-estudiante", on_load=[BaseState.check_login, EstudianteGruposState.cargar_grupos])
-app.add_page(estudiante_tareas_page, route="/mis-tareas-estudiante", on_load=[BaseState.check_login, EstudianteTareasState.cargar_tareas])
+app.add_page(edit_pattern_page, route="/editar-patron/[id_patron]", on_load=[BaseState.check_docente_or_admin, EditPatternState.cargar_datos])
+app.add_page(docente_grupos_page, route="/mis-grupos", on_load=[BaseState.check_docente, GrupoState.cargar_grupos])
+app.add_page(estudiante_grupos_page, route="/mis-grupos-estudiante", on_load=[BaseState.check_estudiante, EstudianteGruposState.cargar_grupos])
+app.add_page(estudiante_tareas_page, route="/mis-tareas-estudiante", on_load=[BaseState.check_estudiante, EstudianteTareasState.cargar_tareas])
 app.add_page(notificaciones_page, route="/notificaciones", on_load=[BaseState.check_login, BaseState.cargar_notificaciones])
-app.add_page(crear_tarea_page, route="/crear-tarea", on_load=[BaseState.check_login, TareaState.cargar_datos_formulario])
-app.add_page(mis_tareas_page, route="/mis-tareas", on_load=[BaseState.check_login, MisTareasState.cargar_tareas])
-app.add_page(tarea_detail_page, route="/tarea/[id_tarea]", on_load=[BaseState.check_login, MisTareasState.cargar_detalle_tarea])
-app.add_page(editar_tarea_page, route="/editar-tarea/[id_tarea]", on_load=[BaseState.check_login, TareaState.cargar_tarea_edicion])
-app.add_page(resolver_tarea_page, route="/resolver-tarea/[id_tarea]", on_load=[BaseState.check_login, ResolverTareaState.cargar_tarea])
-app.add_page(mensajes_alumnos_page, route="/mensajes-alumnos", on_load=[BaseState.check_login, MensajesState.cargar_mensajes])
+app.add_page(crear_tarea_page, route="/crear-tarea", on_load=[BaseState.check_docente, TareaState.cargar_datos_formulario])
+app.add_page(mis_tareas_page, route="/mis-tareas", on_load=[BaseState.check_docente, MisTareasState.cargar_tareas])
+app.add_page(tarea_detail_page, route="/tarea/[id_tarea]", on_load=[BaseState.check_docente, MisTareasState.cargar_detalle_tarea])
+app.add_page(editar_tarea_page, route="/editar-tarea/[id_tarea]", on_load=[BaseState.check_docente, TareaState.cargar_tarea_edicion])
+app.add_page(resolver_tarea_page, route="/resolver-tarea/[id_tarea]", on_load=[BaseState.check_estudiante, ResolverTareaState.cargar_tarea])
+app.add_page(evaluar_tarea_page, route="/evaluar-tarea/[id_tarea]/[id_estudiante]", on_load=[BaseState.check_docente, EvaluarTareaState.cargar_resolucion])
+app.add_page(mensajes_alumnos_page, route="/mensajes-alumnos", on_load=[BaseState.check_docente, MensajesState.cargar_mensajes])
+app.add_page(leyenda_diagramas_page, route="/leyenda-diagramas")
+app.add_page(informe_estudiante_page, route="/informe-estudiante/[id_estudiante]", on_load=[BaseState.check_docente, InformeEstudianteState.cargar_informe])
+app.add_page(ver_correccion_page, route="/ver-correccion/[id_tarea]", on_load=[BaseState.check_estudiante, VerCorreccionState.cargar_correccion])

@@ -42,15 +42,28 @@ def render_pregunta(pregunta: PreguntaUI, index: int) -> rx.Component:
                 **estilo_input
             ),
             
-            rx.vstack(
-                rx.text("Tipo de respuesta", weight="bold", size="2", color="#111827"),
-                rx.select(
-                    ["Desarrollo", "Test", "Diagrama"],
-                    value=pregunta.tipo,
-                    on_change=lambda v: TareaState.update_pregunta(index, "tipo", v),
-                    **estilo_input
+            rx.hstack(
+                rx.vstack(
+                    rx.text("Tipo de respuesta", weight="bold", size="2", color="#111827"),
+                    rx.select(
+                        ["Desarrollo", "Test", "Diagrama"],
+                        value=pregunta.tipo,
+                        on_change=lambda v: TareaState.update_pregunta(index, "tipo", v),
+                        **estilo_input
+                    ),
+                    align_items="start", width="100%",
                 ),
-                align_items="start", width="100%",
+                rx.vstack(
+                    rx.text("Calificación Máxima", weight="bold", size="2", color="#111827"),
+                    rx.input(
+                        value=pregunta.calificacion_maxima,
+                        on_change=lambda v: TareaState.update_pregunta(index, "calificacion_maxima", v),
+                        type="number", step="0.1", min="0",
+                        **estilo_input
+                    ),
+                    align_items="start", width="100%",
+                ),
+                width="100%", spacing="4"
             ),
 
             rx.cond(
