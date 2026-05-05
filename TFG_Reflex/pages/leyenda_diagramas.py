@@ -4,7 +4,6 @@ from ..components.layout import sidebar_layout, header_component
 
 
 def seccion_relacion(titulo: str, icono_desc: str, instrucciones: list[str], color: str = "#4f46e5") -> rx.Component:
-    """Genera una tarjeta para un tipo de relación UML."""
     return rx.card(
         rx.vstack(
             rx.hstack(
@@ -33,7 +32,6 @@ def seccion_relacion(titulo: str, icono_desc: str, instrucciones: list[str], col
 
 
 def seccion_clase() -> rx.Component:
-    """Sección que explica cómo representar una clase UML."""
     return rx.card(
         rx.vstack(
             rx.hstack(
@@ -130,7 +128,6 @@ def seccion_clase() -> rx.Component:
 
 
 def _standalone_header() -> rx.Component:
-    """Header sencillo para cuando se accede sin login (desde la pizarra)."""
     return rx.hstack(
         rx.hstack(
             rx.icon("library-big", size=28, color="#4f46e5"),
@@ -148,7 +145,6 @@ def _standalone_header() -> rx.Component:
 
 
 def _contenido_leyenda() -> rx.Component:
-    """Contenido compartido de la leyenda (usado en ambos layouts)."""
     return rx.vstack(
         rx.card(
             rx.hstack(

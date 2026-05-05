@@ -17,18 +17,20 @@ class TldrawComponent(rx.Component):
         return """
 import 'tldraw/tldraw.css';
 
-const hiddenUiStyle = document.createElement('style');
-hiddenUiStyle.textContent = `
-    .tlui-menu-zone { display: none !important; }
-    .tlui-navigation-zone { display: none !important; }
-    .tlui-help-menu { display: none !important; }
-    a[href*="tldraw.dev"] { display: none !important; }
-    .tlui-watermark_SEE-LICENSE { display: none !important; }
-    [class*="watermark"] { display: none !important; }
-`;
-if (!document.head.querySelector('#tldraw-hide-ui')) {
-    hiddenUiStyle.id = 'tldraw-hide-ui';
-    document.head.appendChild(hiddenUiStyle);
+if (typeof document !== 'undefined') {
+    const hiddenUiStyle = document.createElement('style');
+    hiddenUiStyle.textContent = `
+        .tlui-menu-zone { display: none !important; }
+        .tlui-navigation-zone { display: none !important; }
+        .tlui-help-menu { display: none !important; }
+        a[href*="tldraw.dev"] { display: none !important; }
+        .tlui-watermark_SEE-LICENSE { display: none !important; }
+        [class*="watermark"] { display: none !important; }
+    `;
+    if (!document.head.querySelector('#tldraw-hide-ui')) {
+        hiddenUiStyle.id = 'tldraw-hide-ui';
+        document.head.appendChild(hiddenUiStyle);
+    }
 }
 
 const TldrawWrapper = (props) => {

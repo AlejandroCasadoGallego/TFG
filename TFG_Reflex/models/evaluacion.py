@@ -12,6 +12,7 @@ class ResolucionTarea(rx.Model, table=True):
     fechaEntrega: datetime
     calificacionTotal: float = sqlmodel.Field(default=0.0)
     estado: str 
+    calificacion_liberada: bool = sqlmodel.Field(default=False)
     
     estudiante_id: int = sqlmodel.Field(foreign_key="estudiante.usuario_id")
     tarea_id: int = sqlmodel.Field(foreign_key="tarea.id_tarea")

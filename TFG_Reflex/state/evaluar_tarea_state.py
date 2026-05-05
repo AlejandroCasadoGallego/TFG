@@ -142,7 +142,6 @@ class EvaluarTareaState(BaseState):
         self.respuestas = temp_respuestas
 
     def calificar_tarea(self):
-        # Validar calificaciones antes de grabar
         for resp in self.respuestas:
             if resp.calificacion > resp.calificacion_maxima:
                 return rx.toast.error(f"Error: La pregunta {resp.numero} tiene una nota de {resp.calificacion} superior al máximo permitido ({resp.calificacion_maxima}).", position="bottom-right")
@@ -154,7 +153,6 @@ class EvaluarTareaState(BaseState):
 
         with rx.session() as session:
             from ..models.evaluacion import ResolucionTarea, RespuestaPregunta
-            from ..models.usuarios import Usuario, Notificacion
             
             resolucion = session.exec(
                 sqlmodel.select(ResolucionTarea)
@@ -183,24 +181,12 @@ class EvaluarTareaState(BaseState):
 
             resolucion.calificacionTotal = total_calificacion
             resolucion.estado = "corregida"
+            resolucion.calificacion_liberada = False
             session.add(resolucion)
-
-            # Enviar notificacion al alumno
-            profesor = session.exec(sqlmodel.select(Usuario).where(Usuario.nombreUsuario == self.usuario_actual)).first()
-            if profesor:
-                mensaje = f"Tu tarea '{self.titulo_tarea}' ha sido corregida. Tu calificación es {total_calificacion:.2f}. Puedes consultarla en tus tareas."
-                notificacion = Notificacion(
-                    remitente_id=profesor.id_usuario,
-                    destinatario_id=id_estudiante_int,
-                    titulo=f"Tarea Corregida: {self.titulo_tarea}",
-                    mensaje=mensaje,
-                    leida=False
-                )
-                session.add(notificacion)
 
             session.commit()
 
         return [
-            rx.toast.success("Tarea evaluada correctamente.", position="bottom-right"),
+            rx.toast.success("Calificación guardada. Recuerda liberarla desde el detalle de la tarea.", position="bottom-right"),
             rx.redirect(f"/tarea/{self.id_tarea_actual}")
         ]

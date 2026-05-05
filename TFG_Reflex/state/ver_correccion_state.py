@@ -69,7 +69,7 @@ class VerCorreccionState(BaseState):
                 .where((ResolucionTarea.tarea_id == id_tarea_int) & (ResolucionTarea.estudiante_id == estudiante.id_usuario))
             ).first()
             
-            if not resolucion or resolucion.estado != "corregida":
+            if not resolucion or resolucion.estado != "corregida" or not resolucion.calificacion_liberada:
                 self.error_carga = True
                 return
                 

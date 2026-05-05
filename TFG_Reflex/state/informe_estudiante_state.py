@@ -49,9 +49,6 @@ class InformeEstudianteState(BaseState):
                 sqlmodel.select(Grupos).where(Grupos.docente_id == docente_actual.id_usuario)
             ).all()
             ids_grupos = [g.id_grupo for g in grupos_docente]
-            
-            # If teacher has no groups, they might still have assigned tasks directly
-            # We don't return early here anymore.
                 
             condiciones_tarea = (Tarea.docente_id == docente_actual.id_usuario)
             if ids_grupos:
@@ -106,7 +103,6 @@ class InformeEstudianteState(BaseState):
                 calif_base_10 = (calif_obtenida / suma_maximas) * 10.0
                 suma_notas_base_10 += calif_base_10
                 
-                # Consider passing if grade is >= 50% of the total max sum
                 aprobado = calif_obtenida >= (suma_maximas / 2.0)
                 
                 self.detalles_tareas.append({

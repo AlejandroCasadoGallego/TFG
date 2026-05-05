@@ -51,6 +51,8 @@ class MisTareasState(BaseState):
     tarea_a_eliminar_titulo: str = ""
     confirm_delete_input: str = ""
 
+    calificaciones_pendientes: int = 0
+
     def cargar_tareas(self):
         if not self.usuario_actual:
             return
@@ -182,6 +184,7 @@ class MisTareasState(BaseState):
         self.tarea_detalle = TareaDetalleUI()
         self.preguntas_detalle = []
         self.estudiantes_detalle = []
+        self.calificaciones_pendientes = 0
 
         if not id_url:
             self.error_detalle = True
@@ -196,6 +199,7 @@ class MisTareasState(BaseState):
         with rx.session() as session:
             from ..models.usuarios import Usuario, Grupos
             from ..models.tarea import Tarea, Pregunta, EstudianteTarea, Ejercicio, PruebaEvaluacion
+            from ..models.evaluacion import ResolucionTarea
 
             profesor = session.exec(
                 sqlmodel.select(Usuario).where(Usuario.nombreUsuario == self.usuario_actual)
@@ -241,6 +245,16 @@ class MisTareasState(BaseState):
                 .where(EstudianteTarea.id_tarea == tarea.id_tarea)
                 .order_by(Usuario.nombreUsuario)
             ).all()
+
+            pendientes = session.exec(
+                sqlmodel.select(ResolucionTarea)
+                .where(
+                    (ResolucionTarea.tarea_id == id_tarea) &
+                    (ResolucionTarea.estado == "corregida") &
+                    (ResolucionTarea.calificacion_liberada == False)
+                )
+            ).all()
+            self.calificaciones_pendientes = len(pendientes)
 
             self.tarea_detalle = TareaDetalleUI(
                 id_tarea=str(tarea.id_tarea),
@@ -289,3 +303,53 @@ class MisTareasState(BaseState):
                 )
                 for usuario, asignacion in estudiantes
             ]
+
+    def liberar_calificaciones(self):
+        id_tarea_str = self.tarea_detalle.id_tarea
+        if not id_tarea_str:
+            return rx.toast.error("No se ha cargado ninguna tarea.", position="bottom-right")
+
+        id_tarea = int(id_tarea_str)
+
+        with rx.session() as session:
+            from ..models.evaluacion import ResolucionTarea
+            from ..models.usuarios import Usuario, Notificacion
+            from ..models.tarea import Tarea
+
+            profesor = session.exec(sqlmodel.select(Usuario).where(Usuario.nombreUsuario == self.usuario_actual)).first()
+            tarea = session.exec(sqlmodel.select(Tarea).where(Tarea.id_tarea == id_tarea)).first()
+
+            if not profesor or not tarea:
+                return rx.toast.error("Error al liberar las calificaciones.", position="bottom-right")
+
+            resoluciones = session.exec(
+                sqlmodel.select(ResolucionTarea)
+                .where(
+                    (ResolucionTarea.tarea_id == id_tarea) &
+                    (ResolucionTarea.estado == "corregida") &
+                    (ResolucionTarea.calificacion_liberada == False)
+                )
+            ).all()
+
+            if not resoluciones:
+                return rx.toast.info("No hay calificaciones pendientes de liberar.", position="bottom-right")
+
+            for resolucion in resoluciones:
+                resolucion.calificacion_liberada = True
+                session.add(resolucion)
+
+                mensaje = f"Tu tarea '{tarea.titulo}' ha sido corregida. Tu calificación es {resolucion.calificacionTotal:.2f}. Puedes consultarla en tus tareas."
+                notificacion = Notificacion(
+                    remitente_id=profesor.id_usuario,
+                    destinatario_id=resolucion.estudiante_id,
+                    titulo=f"Tarea Corregida: {tarea.titulo}",
+                    mensaje=mensaje,
+                    leida=False,
+                )
+                session.add(notificacion)
+
+            session.commit()
+
+        total = len(resoluciones)
+        self.calificaciones_pendientes = 0
+        return rx.toast.success(f"Se han liberado {total} calificación(es) y notificado a los estudiantes.", position="bottom-right")

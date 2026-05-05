@@ -14,7 +14,6 @@ class AuthState(BaseState):
     error_pass_forzado: str = ""
 
     def _validar_password(self, password: str) -> str:
-        """Valida que la contraseña sea segura. Devuelve mensaje de error o cadena vacía si es válida."""
         if len(password) < 8:
             return "La contraseña debe tener al menos 8 caracteres."
         if not re.search(r'[A-Z]', password):

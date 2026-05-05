@@ -31,7 +31,6 @@ class EstudianteTareasState(BaseState):
 
             ahora = datetime.now()
 
-            # Todas las asignaciones
             statement = (
                 sqlmodel.select(Tarea, EstudianteTarea)
                 .join(EstudianteTarea, Tarea.id_tarea == EstudianteTarea.id_tarea)
@@ -65,7 +64,7 @@ class EstudianteTareasState(BaseState):
                     tipo=tipo
                 )
 
-                if resolucion and resolucion.estado == "corregida":
+                if resolucion and resolucion.estado == "corregida" and resolucion.calificacion_liberada:
                     lista_corregidas.append(tarea_ui)
                 elif tarea.fechaFin >= ahora:
                     permite_reintentos = False

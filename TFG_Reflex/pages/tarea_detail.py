@@ -261,6 +261,23 @@ def contenido_detalle_tarea() -> rx.Component:
                     spacing="2",
                 ),
                 rx.spacer(),
+                rx.cond(
+                    MisTareasState.calificaciones_pendientes > 0,
+                    rx.button(
+                        rx.icon("send", size=16),
+                        "Liberar calificaciones",
+                        rx.badge(
+                            MisTareasState.calificaciones_pendientes,
+                            color_scheme="red",
+                            variant="solid",
+                            radius="full",
+                        ),
+                        variant="solid",
+                        color_scheme="green",
+                        cursor="pointer",
+                        on_click=MisTareasState.liberar_calificaciones,
+                    ),
+                ),
                 rx.button(
                     rx.icon("pencil", size=16),
                     "Modificar",
