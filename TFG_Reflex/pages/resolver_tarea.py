@@ -2,17 +2,18 @@ import reflex as rx
 from ..state.resolver_tarea_state import ResolverTareaState
 from ..state.resolver_tarea_state import ResolverTareaState, PreguntaResolucionUI
 from ..components.diagram_board import diagram_board
+from ..colores import *
 
 def locked_header() -> rx.Component:
     return rx.hstack(
         rx.hstack(
-            rx.icon("library-big", size=28, color="#4f46e5"),
-            rx.heading("PatternLab", size="6", weight="bold", color="#111827"),
+            rx.icon("library-big", size=28, color=color_primario),
+            rx.heading("PatternLab", size="6", weight="bold", color=color_texto_principal),
             align="center",
             spacing="3",
         ),
         padding="1em 2em",
-        border_bottom="1px solid #e5e7eb",
+        border_bottom=f"1px solid {color_borde}",
         background_color="white",
         width="100%",
         align_items="center"
@@ -49,15 +50,15 @@ def modal_confirmar_entrega() -> rx.Component:
 def renderizar_pregunta(pregunta: PreguntaResolucionUI) -> rx.Component:
     return rx.card(
         rx.vstack(
-            rx.heading(f"Pregunta", size="4", color="#374151", margin_bottom="0.5em"),
+            rx.heading(f"Pregunta", size="4", color=color_texto_secundario, margin_bottom="0.5em"),
             rx.card(
-                rx.markdown(pregunta.enunciado, color="#111827"),
-                background_color="#f8fafc",
+                rx.markdown(pregunta.enunciado, color=color_texto_principal),
+                background_color=color_fondo_hover,
                 padding="1em",
                 margin_bottom="1em",
                 width="100%",
-                border_left="4px solid #4f46e5",
-                color="#111827"
+                border_left=f"4px solid {color_primario}",
+                color=color_texto_principal
             ),
             
             rx.box(
@@ -69,8 +70,8 @@ def renderizar_pregunta(pregunta: PreguntaResolucionUI) -> rx.Component:
                         on_change=lambda val: ResolverTareaState.set_respuesta(pregunta.id, val),
                         width="100%",
                         min_height="200px",
-                        border="1px solid #d1d5db",
-                        color="#111827"
+                        border=f"1px solid {color_borde_input}",
+                        color=color_texto_principal
                     ),
                     display=rx.cond(
                         (pregunta.tipo == "Desarrollo") | (pregunta.tipo == "desarrollo"),
@@ -89,7 +90,7 @@ def renderizar_pregunta(pregunta: PreguntaResolucionUI) -> rx.Component:
                         spacing="3",
                         size="3",
                         color_scheme="gray",
-                        style={"color": "#111827", "fontWeight": "500"}
+                        style={"color": color_texto_principal, "fontWeight": "500"}
                     ),
                     display=rx.cond(
                         (pregunta.tipo == "Test") | (pregunta.tipo == "test"),
@@ -129,7 +130,7 @@ def renderizar_pregunta(pregunta: PreguntaResolucionUI) -> rx.Component:
                             ),
                             height="600px",
                             width="100%",
-                            border="2px solid #e5e7eb",
+                            border=f"2px solid {color_borde}",
                             border_radius="8px",
                             overflow="hidden",
                         ),
@@ -162,7 +163,7 @@ def renderizar_pregunta(pregunta: PreguntaResolucionUI) -> rx.Component:
         margin_bottom="2em",
         background_color="white",
         box_shadow="sm",
-        border="1px solid #e5e7eb"
+        border=f"1px solid {color_borde}"
     )
 
 def resolver_tarea_page() -> rx.Component:
@@ -174,12 +175,12 @@ def resolver_tarea_page() -> rx.Component:
             ResolverTareaState.es_prueba,
             rx.box(
                 rx.hstack(
-                    rx.icon("timer", size=24, color=rx.cond(ResolverTareaState.tiempo_restante_segundos < 60, "#ef4444", "#f59e0b")),
-                    rx.text("Tiempo Restante:", weight="bold", color="#374151"),
+                    rx.icon("timer", size=24, color=rx.cond(ResolverTareaState.tiempo_restante_segundos < 60, color_error, color_amarillo_suave)),
+                    rx.text("Tiempo Restante:", weight="bold", color=color_texto_secundario),
                     rx.heading(
                         ResolverTareaState.tiempo_formateado,
                         size="6",
-                        color=rx.cond(ResolverTareaState.tiempo_restante_segundos < 60, "#ef4444", "#f59e0b")
+                        color=rx.cond(ResolverTareaState.tiempo_restante_segundos < 60, color_error, color_amarillo_suave)
                     ),
                     spacing="3",
                     align="center",
@@ -190,7 +191,7 @@ def resolver_tarea_page() -> rx.Component:
                 z_index="50",
                 background_color="white",
                 padding="1em",
-                border_bottom="1px solid #e5e7eb",
+                border_bottom=f"1px solid {color_borde}",
                 box_shadow="sm"
             )
         ),
@@ -200,9 +201,9 @@ def resolver_tarea_page() -> rx.Component:
                 ResolverTareaState.error_carga != "",
                 rx.center(
                     rx.vstack(
-                        rx.icon("triangle-alert", size=48, color="#ef4444"),
+                        rx.icon("triangle-alert", size=48, color=color_error),
                         rx.heading("Error", size="6"),
-                        rx.text(ResolverTareaState.error_carga, color="#6b7280"),
+                        rx.text(ResolverTareaState.error_carga, color=color_texto_gris),
                         rx.button("Volver", on_click=rx.redirect("/mis-tareas-estudiante"), margin_top="1em", cursor="pointer"),
                         align="center",
                         spacing="3"
@@ -211,7 +212,7 @@ def resolver_tarea_page() -> rx.Component:
                 ),
                 rx.vstack(
                     rx.hstack(
-                        rx.heading(ResolverTareaState.tarea_actual.titulo, size="8", weight="bold", color="#111827"),
+                        rx.heading(ResolverTareaState.tarea_actual.titulo, size="8", weight="bold", color=color_texto_principal),
                         rx.spacer(),
                         modal_confirmar_entrega(),
                         width="100%",
@@ -223,15 +224,15 @@ def resolver_tarea_page() -> rx.Component:
                         ResolverTareaState.tarea_actual.descripcion != "",
                         rx.card(
                             rx.vstack(
-                                rx.heading("Descripción General", size="4", color="#374151"),
-                                rx.text(ResolverTareaState.tarea_actual.descripcion, color="#4b5563", margin_bottom="1em"),
+                                rx.heading("Descripción General", size="4", color=color_texto_secundario),
+                                rx.text(ResolverTareaState.tarea_actual.descripcion, color=color_texto_terciario, margin_bottom="1em"),
                                 align_items="start"
                             ),
                             background_color="white",
                             padding="1.5em",
                             margin_bottom="1em",
                             width="100%",
-                            border="1px solid #e5e7eb",
+                            border=f"1px solid {color_borde}",
                             box_shadow="sm"
                         )
                     ),
@@ -240,15 +241,15 @@ def resolver_tarea_page() -> rx.Component:
                         ResolverTareaState.tarea_actual.enunciado != "",
                         rx.card(
                             rx.vstack(
-                                rx.heading("Instrucciones y Requisitos", size="4", color="#374151"),
+                                rx.heading("Instrucciones y Requisitos", size="4", color=color_texto_secundario),
                                 rx.markdown(ResolverTareaState.tarea_actual.enunciado),
                                 align_items="start"
                             ),
-                            background_color="#f3f4f6",
+                            background_color=color_fondo_claro,
                             padding="1.5em",
                             margin_bottom="2em",
                             width="100%",
-                            border="1px solid #e5e7eb",
+                            border=f"1px solid {color_borde}",
                             box_shadow="sm"
                         )
                     ),
@@ -273,7 +274,7 @@ def resolver_tarea_page() -> rx.Component:
                 )
             ),
             padding_x="2em",
-            background_color="#f9fafb",
+            background_color=color_fondo_pagina,
             min_height="calc(100vh - 80px)"
         )
     )

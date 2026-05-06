@@ -122,3 +122,88 @@ class InformeEstudianteState(BaseState):
                 })
                 
             self.nota_media = round(suma_notas_base_10 / self.total_completadas, 2)
+
+    def cargar_mi_informe(self):
+        if not self.usuario_actual:
+            return rx.redirect("/login")
+
+        with rx.session() as session:
+            estudiante_user = session.exec(
+                sqlmodel.select(Usuario).where(Usuario.nombreUsuario == self.usuario_actual)
+            ).first()
+
+            if not estudiante_user or estudiante_user.rol != "estudiante":
+                return rx.redirect("/dashboard")
+
+            self.estudiante_uid = str(estudiante_user.id_usuario)
+            self.estudiante_nombre = estudiante_user.nombreUsuario
+            self.estudiante_correo = estudiante_user.correo
+
+            statement = sqlmodel.select(ResolucionTarea, Tarea).join(Tarea).where(
+                (ResolucionTarea.estudiante_id == estudiante_user.id_usuario) &
+                (sqlmodel.func.lower(ResolucionTarea.estado) == "corregida") &
+                (ResolucionTarea.calificacion_liberada == True)
+            ).order_by(ResolucionTarea.fechaEntrega)
+
+            resultados = session.exec(statement).all()
+
+            if not resultados:
+                self.total_completadas = 0
+                self.nota_media = 0.0
+                self.detalles_tareas = []
+                self.datos_grafico = []
+                return
+
+            self.total_completadas = len(resultados)
+            suma_notas_base_10 = 0.0
+
+            self.detalles_tareas = []
+            self.datos_grafico = []
+
+            for index, (resolucion, tarea) in enumerate(resultados):
+                es_ejercicio = session.exec(sqlmodel.select(Ejercicio).where(Ejercicio.tarea_id == tarea.id_tarea)).first() is not None
+                tipo_str = "Ejercicio" if es_ejercicio else "Prueba de Evaluación"
+
+                respuestas = session.exec(
+                    sqlmodel.select(RespuestaPregunta).where(RespuestaPregunta.resolucion_id == resolucion.id)
+                ).all()
+
+                comentarios = []
+                for resp in respuestas:
+                    if resp.retroalimentacion and resp.retroalimentacion.strip():
+                        comentarios.append(resp.retroalimentacion)
+
+                comentario_general = " | ".join(comentarios) if comentarios else "Sin comentarios específicos."
+
+                fecha_str = resolucion.fechaEntrega.strftime("%d/%m/%Y")
+
+                from ..models.tarea import Pregunta
+                preguntas_tarea = session.exec(sqlmodel.select(Pregunta).where(Pregunta.tarea_id == tarea.id_tarea)).all()
+                suma_maximas = sum(float(p.calificacion_maxima) for p in preguntas_tarea) if preguntas_tarea else 10.0
+                if suma_maximas == 0:
+                    suma_maximas = 10.0
+
+                calif_obtenida = float(resolucion.calificacionTotal)
+                calif_base_10 = (calif_obtenida / suma_maximas) * 10.0
+                suma_notas_base_10 += calif_base_10
+
+                aprobado = calif_obtenida >= (suma_maximas / 2.0)
+
+                self.detalles_tareas.append({
+                    "tarea_id": str(tarea.id_tarea),
+                    "titulo": tarea.titulo,
+                    "tipo": tipo_str,
+                    "fecha": fecha_str,
+                    "calificacion": calif_obtenida,
+                    "aprobado": aprobado,
+                    "comentarios": comentario_general
+                })
+
+                titulo_corto = tarea.titulo[:15] + "..." if len(tarea.titulo) > 15 else tarea.titulo
+                self.datos_grafico.append({
+                    "nombre": titulo_corto,
+                    "calificacion": round(calif_base_10, 2)
+                })
+
+            self.nota_media = round(suma_notas_base_10 / self.total_completadas, 2)
+

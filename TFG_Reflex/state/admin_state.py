@@ -91,3 +91,70 @@ class AdminState(BaseState):
                 session.commit()
         self.cargar_estudiantes()
         self.cargar_estadisticas_admin()
+
+    lista_usuarios_reset: list[dict[str, str]] = []
+    busqueda_reset: str = ""
+    reset_usuario_id: str = ""
+    reset_usuario_nombre: str = ""
+    reset_nueva_pass: str = ""
+    modal_reset_abierto: bool = False
+
+    def set_busqueda_reset(self, valor: str):
+        self.busqueda_reset = valor
+
+    def set_reset_nueva_pass(self, valor: str):
+        self.reset_nueva_pass = valor
+
+    def cargar_usuarios_reset(self):
+        if self.usuario_rol != "admin":
+            return rx.redirect("/dashboard")
+        with rx.session() as session:
+            usuarios = session.exec(
+                sqlmodel.select(Usuario).where(Usuario.activo == True)
+            ).all()
+            self.lista_usuarios_reset = [
+                {"id": str(u.id_usuario), "nombre": u.nombreUsuario, "correo": u.correo, "rol": u.rol.capitalize()}
+                for u in usuarios if u.rol != "admin"
+            ]
+
+    @rx.var
+    def usuarios_reset_filtrados(self) -> list[dict[str, str]]:
+        if not self.busqueda_reset:
+            return self.lista_usuarios_reset
+        busq = self.busqueda_reset.lower()
+        return [u for u in self.lista_usuarios_reset if busq in u["nombre"].lower() or busq in u["correo"].lower()]
+
+    def abrir_modal_reset(self, id_usuario: str, nombre: str):
+        self.reset_usuario_id = id_usuario
+        self.reset_usuario_nombre = nombre
+        self.reset_nueva_pass = ""
+        self.modal_reset_abierto = True
+
+    def cerrar_modal_reset(self, _valor: bool = False):
+        self.modal_reset_abierto = False
+        self.reset_usuario_id = ""
+        self.reset_usuario_nombre = ""
+        self.reset_nueva_pass = ""
+
+    def confirmar_reset_password(self):
+        if not self.reset_nueva_pass.strip():
+            return rx.toast.error("Debes escribir una nueva contraseña.", position="bottom-right")
+
+        if len(self.reset_nueva_pass.strip()) < 6:
+            return rx.toast.error("La contraseña debe tener al menos 6 caracteres.", position="bottom-right")
+
+        with rx.session() as session:
+            usuario = session.exec(
+                sqlmodel.select(Usuario).where(Usuario.id_usuario == int(self.reset_usuario_id))
+            ).first()
+            if not usuario:
+                return rx.toast.error("Usuario no encontrado.", position="bottom-right")
+
+            usuario.contraseñaHash = self._hash_password(self.reset_nueva_pass.strip())
+            usuario.debe_cambiar_pass = True
+            session.add(usuario)
+            session.commit()
+
+        nombre = self.reset_usuario_nombre
+        self.cerrar_modal_reset()
+        return rx.toast.success(f"Contraseña de '{nombre}' reseteada correctamente. Deberá cambiarla al iniciar sesión.", position="bottom-right")

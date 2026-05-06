@@ -2,6 +2,7 @@ import reflex as rx
 from ..state.base_state import BaseState
 from ..state.patterns_state import PatternsState
 from ..components.layout import sidebar_layout, header_component, public_header
+from ..colores import *
 
 def badge_categoria(categoria: str) -> rx.Component:
     color = rx.match(
@@ -18,8 +19,8 @@ def render_imagen_fallback(patron: dict, alto: str) -> rx.Component:
         patron["diagrama"] != "/placeholder.png",
         rx.image(src=patron["diagrama"], height=alto, width="100%", object_fit="contain"),
         rx.center(
-            rx.icon("layout-template", size=40, color="#94a3b8"),
-            width="100%", height=alto, background_color="#f1f5f9"
+            rx.icon("layout-template", size=40, color=color_gris_medio),
+            width="100%", height=alto, background_color=color_fondo_hover
         )
     )
 
@@ -37,10 +38,10 @@ def patron_card_grid(patron: dict) -> rx.Component:
                     ),
                     justify="between", width="100%", flex_wrap="wrap"
                 ),
-                rx.heading(patron["nombre"], size="5", weight="bold", color="#111827", margin_top="0.5em"),
+                rx.heading(patron["nombre"], size="5", weight="bold", color=color_texto_principal, margin_top="0.5em"),
                 
                 rx.box(
-                    rx.text(patron["descripcion"], color="#4b5563", size="2", style={"display": "-webkit-box", "-webkit-line-clamp": "3", "-webkit-box-orient": "vertical", "overflow": "hidden"}),
+                    rx.text(patron["descripcion"], color=color_texto_terciario, size="2", style={"display": "-webkit-box", "-webkit-line-clamp": "3", "-webkit-box-orient": "vertical", "overflow": "hidden"}),
                     flex="1", width="100%", margin_bottom="0.5em"
                 ),
                 
@@ -50,7 +51,7 @@ def patron_card_grid(patron: dict) -> rx.Component:
                     rx.button(
                         rx.icon("book-open", size=16), "Ver Patrón", 
                         on_click=rx.redirect(f"/patron/{patron['id']}"), 
-                        background_color="#4f46e5", color="white", _hover={"background_color": "#4338ca"},
+                        background_color=color_primario, color="white", _hover={"background_color": color_primario_oscuro},
                         flex="1", cursor="pointer"
                     ),
                     rx.cond(
@@ -69,7 +70,7 @@ def patron_card_grid(patron: dict) -> rx.Component:
             ),
             spacing="0", height="100%"
         ),
-        padding="0", width="100%", height="100%", border="1px solid #e5e7eb", overflow="hidden",
+        padding="0", width="100%", height="100%", border=f"1px solid {color_borde}", overflow="hidden",
         opacity=rx.cond(patron["activo"], "1", "0.65"), 
         _hover={"box_shadow": "md", "transform": "translateY(-2px)", "transition": "all 0.2s"}
     )
@@ -79,12 +80,12 @@ def patron_card_list(patron: dict) -> rx.Component:
         rx.flex(
             rx.box(
                 render_imagen_fallback(patron, "100px"),
-                width="120px", flex_shrink="0", overflow="hidden", border_radius="6px", border="1px solid #e5e7eb"
+                width="120px", flex_shrink="0", overflow="hidden", border_radius="6px", border=f"1px solid {color_borde}"
             ),
             
             rx.vstack(
                 rx.hstack(
-                    rx.heading(patron["nombre"], size="4", weight="bold", color="#111827"), 
+                    rx.heading(patron["nombre"], size="4", weight="bold", color=color_texto_principal), 
                     badge_categoria(patron["categoria"]), 
                     rx.cond(
                         (BaseState.usuario_rol == "admin") | (BaseState.usuario_rol == "docente"),
@@ -92,7 +93,7 @@ def patron_card_list(patron: dict) -> rx.Component:
                     ),
                     align="center", spacing="2", flex_wrap="wrap"
                 ),
-                rx.text(patron["descripcion"], color="#4b5563", size="2", margin_top="0.2em"),
+                rx.text(patron["descripcion"], color=color_texto_terciario, size="2", margin_top="0.2em"),
                 align_items="start", justify="center", width="100%", padding_x="1em"
             ),
             
@@ -114,9 +115,9 @@ def patron_card_list(patron: dict) -> rx.Component:
             ),
             align="center", width="100%", direction={"initial": "column", "md": "row"}, gap="4"
         ),
-        padding="1.2em", width="100%", border="1px solid #e5e7eb", 
+        padding="1.2em", width="100%", border=f"1px solid {color_borde}", 
         opacity=rx.cond(patron["activo"], "1", "0.65"),
-        _hover={"background_color": "#f8fafc", "box_shadow": "sm"}
+        _hover={"background_color": color_fondo_hover, "box_shadow": "sm"}
     )
 
 
@@ -124,8 +125,8 @@ def contenido_biblioteca() -> rx.Component:
     return rx.vstack(
         rx.flex(
             rx.vstack(
-                rx.heading("Biblioteca de Patrones", size="8", weight="bold", color="#111827"),
-                rx.text("Explora y domina los patrones de diseño del Gang of Four.", color="#6b7280", size="3"),
+                rx.heading("Biblioteca de Patrones", size="8", weight="bold", color=color_texto_principal),
+                rx.text("Explora y domina los patrones de diseño del Gang of Four.", color=color_texto_gris, size="3"),
                 align_items="start"
             ),
             rx.spacer(),
@@ -140,7 +141,7 @@ def contenido_biblioteca() -> rx.Component:
             ),
 
             rx.input(
-                rx.input.slot(rx.icon("search", size=18, color="#6b7280")), 
+                rx.input.slot(rx.icon("search", size=18, color=color_texto_gris)), 
                 placeholder="Buscar por nombre...", 
                 value=PatternsState.busqueda, 
                 on_change=PatternsState.set_busqueda, 
@@ -149,8 +150,8 @@ def contenido_biblioteca() -> rx.Component:
                 size="3", 
                 radius="full", 
                 background_color="white", 
-                border="1px solid #d1d5db",
-                color="#111827"
+                border=f"1px solid {color_borde_input}",
+                color=color_texto_principal
             ),
             width="100%", align="end", margin_bottom="2em", flex_direction=["column", "column", "row"], gap="4"
         ),
@@ -191,12 +192,12 @@ def contenido_biblioteca() -> rx.Component:
             ),
             rx.center(
                 rx.vstack(
-                    rx.icon("search-x", size=48, color="#9ca3af"),
-                    rx.heading("No se encontraron patrones", size="5", color="#111827"),
-                    rx.text("Prueba con otra búsqueda o selecciona una categoría diferente.", color="#6b7280"),
+                    rx.icon("search-x", size=48, color=color_texto_claro),
+                    rx.heading("No se encontraron patrones", size="5", color=color_texto_principal),
+                    rx.text("Prueba con otra búsqueda o selecciona una categoría diferente.", color=color_texto_gris),
                     align="center", spacing="3"
                 ),
-                padding="4em", width="100%", border="2px dashed #e5e7eb", border_radius="12px", background_color="white"
+                padding="4em", width="100%", border=f"2px dashed {color_borde}", border_radius="12px", background_color="white"
             )
         ),
         width="100%", max_width="1400px", margin="0 auto"
@@ -209,7 +210,7 @@ def biblioteca_page() -> rx.Component:
         rx.vstack(
             public_header(),
             rx.box(contenido_biblioteca(), padding="3em", width="100%"),
-            width="100%", min_height="100vh", background_color="#f9fafb"
+            width="100%", min_height="100vh", background_color=color_fondo_pagina
         ),
         rx.flex(
             sidebar_layout(),
@@ -220,7 +221,7 @@ def biblioteca_page() -> rx.Component:
                     padding="3em", 
                     width="100%"
                 ), 
-                flex="1", height="100vh", background_color="#f9fafb", overflow="auto"
+                flex="1", height="100vh", background_color=color_fondo_pagina, overflow="auto"
             ),
             width="100%"
         )

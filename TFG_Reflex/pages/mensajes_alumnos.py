@@ -1,6 +1,7 @@
 import reflex as rx
 from ..state.mensajes_state import MensajesState, EstudianteDestinatarioUI
 from ..components.layout import sidebar_layout, header_component
+from ..colores import *
 
 
 def render_estudiante_seleccionable(estudiante: EstudianteDestinatarioUI) -> rx.Component:
@@ -13,15 +14,15 @@ def render_estudiante_seleccionable(estudiante: EstudianteDestinatarioUI) -> rx.
                 color_scheme="indigo",
             ),
             rx.vstack(
-                rx.text(estudiante.nombre, size="2", color="#111827", weight="bold"),
-                rx.text(estudiante.correo, size="1", color="#6b7280"),
+                rx.text(estudiante.nombre, size="2", color=color_texto_principal, weight="bold"),
+                rx.text(estudiante.correo, size="1", color=color_texto_gris),
                 spacing="0",
                 align_items="start",
             ),
             rx.spacer(),
             rx.cond(
                 MensajesState.destinatario_seleccionado == estudiante.id_estudiante,
-                rx.icon("circle-check", size=18, color="#4f46e5"),
+                rx.icon("circle-check", size=18, color=color_primario),
             ),
             width="100%",
             align="center",
@@ -32,15 +33,15 @@ def render_estudiante_seleccionable(estudiante: EstudianteDestinatarioUI) -> rx.
         cursor="pointer",
         background_color=rx.cond(
             MensajesState.destinatario_seleccionado == estudiante.id_estudiante,
-            "#f5f3ff",
+            color_morado_fondo,
             "transparent",
         ),
         border=rx.cond(
             MensajesState.destinatario_seleccionado == estudiante.id_estudiante,
-            "2px solid #4f46e5",
-            "1px solid #e5e7eb",
+            f"2px solid {color_primario}",
+            f"1px solid {color_borde}",
         ),
-        _hover={"background_color": "#f5f3ff", "border_color": "#a5b4fc"},
+        _hover={"background_color": color_morado_fondo, "border_color": color_indigo_claro},
         on_click=MensajesState.seleccionar_destinatario(
             estudiante.id_estudiante, estudiante.nombre
         ),
@@ -54,29 +55,29 @@ def render_mensaje_enviado(msg: rx.Var) -> rx.Component:
             rx.icon(
                 rx.cond(msg["leida"], "mail-open", "mail"),
                 size=18,
-                color=rx.cond(msg["leida"], "#9ca3af", "#4f46e5"),
+                color=rx.cond(msg["leida"], color_texto_claro, color_primario),
             ),
             rx.vstack(
                 rx.hstack(
-                    rx.text(msg["titulo"], size="2", color="#111827", weight="bold"),
+                    rx.text(msg["titulo"], size="2", color=color_texto_principal, weight="bold"),
                     rx.spacer(),
-                    rx.text(msg["fecha"], size="1", color="#9ca3af"),
+                    rx.text(msg["fecha"], size="1", color=color_texto_claro),
                     width="100%",
                     align="center",
                 ),
                 rx.text(
                     rx.cond(msg["leida"], "Leído", "No leído"),
                     size="1",
-                    color=rx.cond(msg["leida"], "#16a34a", "#d97706"),
+                    color=rx.cond(msg["leida"], color_exito, color_advertencia),
                     weight="medium",
                 ),
                 rx.text(
                     "Para: ",
                     rx.text.strong(msg["destinatario"]),
                     size="1",
-                    color="#6b7280",
+                    color=color_texto_gris,
                 ),
-                rx.text(msg["mensaje"], size="1", color="#4b5563", no_of_lines=2),
+                rx.text(msg["mensaje"], size="1", color=color_texto_terciario, no_of_lines=2),
                 spacing="1",
                 width="100%",
                 align_items="start",
@@ -86,8 +87,8 @@ def render_mensaje_enviado(msg: rx.Var) -> rx.Component:
             spacing="3",
         ),
         padding="1em 1.25em",
-        background_color=rx.cond(msg["leida"], "#f9fafb", "white"),
-        border="1px solid #e5e7eb",
+        background_color=rx.cond(msg["leida"], color_fondo_pagina, "white"),
+        border=f"1px solid {color_borde}",
         border_radius="8px",
         opacity=rx.cond(msg["leida"], "0.75", "1"),
     )
@@ -98,15 +99,15 @@ def panel_redactar() -> rx.Component:
         rx.vstack(
             
             rx.hstack(
-                rx.icon("pen-line", size=20, color="#4f46e5"),
-                rx.heading("Redactar Mensaje", size="4", color="#111827"),
+                rx.icon("pen-line", size=20, color=color_primario),
+                rx.heading("Redactar Mensaje", size="4", color=color_texto_principal),
                 align="center",
                 spacing="2",
             ),
             rx.divider(margin_y="0.5em"),
 
             
-            rx.text("Destinatario", size="2", color="#374151", weight="bold"),
+            rx.text("Destinatario", size="2", color=color_texto_secundario, weight="bold"),
             rx.cond(
                 MensajesState.destinatario_nombre != "",
                 rx.hstack(
@@ -135,7 +136,7 @@ def panel_redactar() -> rx.Component:
                 rx.text(
                     "Selecciona un alumno de la lista...",
                     size="1",
-                    color="#9ca3af",
+                    color=color_texto_claro,
                     font_style="italic",
                 ),
             ),
@@ -163,7 +164,7 @@ def panel_redactar() -> rx.Component:
                             rx.text(
                                 "No se encontraron alumnos.",
                                 size="2",
-                                color="#9ca3af",
+                                color=color_texto_claro,
                             ),
                             padding="2em",
                             width="100%",
@@ -179,14 +180,14 @@ def panel_redactar() -> rx.Component:
             rx.divider(margin_y="0.5em"),
 
             
-            rx.text("Asunto", size="2", color="#374151", weight="bold"),
+            rx.text("Asunto", size="2", color=color_texto_secundario, weight="bold"),
             rx.input(
                 placeholder="Escribe el asunto del mensaje...",
                 value=MensajesState.titulo_mensaje,
                 on_change=MensajesState.set_titulo_mensaje,
                 width="100%",
             ),
-            rx.text("Mensaje", size="2", color="#374151", weight="bold"),
+            rx.text("Mensaje", size="2", color=color_texto_secundario, weight="bold"),
             rx.text_area(
                 placeholder="Escribe tu mensaje aquí...",
                 value=MensajesState.cuerpo_mensaje,
@@ -212,7 +213,7 @@ def panel_redactar() -> rx.Component:
         ),
         padding="1.5em",
         background_color="white",
-        border="1px solid #e5e7eb",
+        border=f"1px solid {color_borde}",
         border_radius="8px",
         width="100%",
     )
@@ -222,8 +223,8 @@ def panel_historial() -> rx.Component:
     return rx.box(
         rx.vstack(
             rx.hstack(
-                rx.icon("history", size=20, color="#4f46e5"),
-                rx.heading("Mensajes Enviados", size="4", color="#111827"),
+                rx.icon("history", size=20, color=color_primario),
+                rx.heading("Mensajes Enviados", size="4", color=color_texto_principal),
                 align="center",
                 spacing="2",
             ),
@@ -239,10 +240,10 @@ def panel_historial() -> rx.Component:
                 ),
                 rx.center(
                     rx.vstack(
-                        rx.icon("mail-x", size=40, color="#9ca3af"),
+                        rx.icon("mail-x", size=40, color=color_texto_claro),
                         rx.text(
                             "Aún no has enviado ningún mensaje.",
-                            color="#6b7280",
+                            color=color_texto_gris,
                             size="2",
                         ),
                         align="center",
@@ -258,7 +259,7 @@ def panel_historial() -> rx.Component:
         ),
         padding="1.5em",
         background_color="white",
-        border="1px solid #e5e7eb",
+        border=f"1px solid {color_borde}",
         border_radius="8px",
         width="100%",
     )
@@ -291,7 +292,7 @@ def mensajes_alumnos_page() -> rx.Component:
             ),
             flex="1",
             height="100vh",
-            background_color="#f9fafb",
+            background_color=color_fondo_pagina,
             overflow="auto",
         ),
         width="100%",

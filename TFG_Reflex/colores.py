@@ -1,0 +1,47 @@
+color_texto_principal = "#111827"
+color_texto_secundario = "#374151"
+color_texto_terciario = "#4b5563"
+color_texto_gris = "#6b7280"
+color_texto_claro = "#9ca3af"
+
+color_fondo_pagina = "#f9fafb"
+color_fondo_blanco = "#ffffff"
+color_fondo_claro = "#f3f4f6"
+color_fondo_hover = "#f8fafc"
+
+color_borde = "#e5e7eb"
+color_borde_input = "#d1d5db"
+
+color_primario = "#4f46e5"
+color_primario_oscuro = "#4338ca"
+color_indigo_suave = "#6366f1"
+color_indigo_fondo = "#eef2ff"
+color_indigo_borde = "#c7d2fe"
+color_indigo_claro = "#a5b4fc"
+
+color_exito = "#16a34a"
+color_exito_oscuro = "#166534"
+color_exito_check = "#15803d"
+color_exito_suave = "#10b981"
+color_exito_fondo = "#f0fdf4"
+color_exito_fondo_claro = "#dcfce3"
+
+color_error = "#ef4444"
+color_error_oscuro = "#dc2626"
+color_error_intenso = "#991b1b"
+color_error_fondo = "#fee2e2"
+color_error_fondo_claro = "#fef2f2"
+
+color_advertencia = "#d97706"
+color_amarillo = "#eab308"
+color_amarillo_suave = "#f59e0b"
+color_amarillo_fondo = "#fef3c7"
+
+color_info = "#0891b2"
+color_morado = "#7c3aed"
+color_morado_fondo = "#f5f3ff"
+
+color_oscuro = "#1f2937"
+color_negro = "#000000"
+color_oscuro_profundo = "#1e293b"
+color_gris_medio = "#94a3b8"

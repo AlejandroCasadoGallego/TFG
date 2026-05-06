@@ -2,15 +2,16 @@ import reflex as rx
 from ..state.mis_tareas_state import MisTareasState, PreguntaDetalleUI, EstudianteAsignadoUI
 from ..components.layout import sidebar_layout, header_component
 from .mis_tareas import modal_confirmar_eliminacion
+from ..colores import *
 
 
 def resumen_item(icono: str, etiqueta: str, valor: str) -> rx.Component:
     return rx.box(
         rx.hstack(
-            rx.icon(icono, size=18, color="#4f46e5"),
+            rx.icon(icono, size=18, color=color_primario),
             rx.vstack(
-                rx.text(etiqueta, size="1", color="#6b7280", weight="bold"),
-                rx.text(valor, size="2", color="#111827", weight="medium"),
+                rx.text(etiqueta, size="1", color=color_texto_gris, weight="bold"),
+                rx.text(valor, size="2", color=color_texto_principal, weight="medium"),
                 spacing="0",
                 align_items="start",
             ),
@@ -19,7 +20,7 @@ def resumen_item(icono: str, etiqueta: str, valor: str) -> rx.Component:
         ),
         padding="1em",
         background_color="white",
-        border="1px solid #e5e7eb",
+        border=f"1px solid {color_borde}",
         border_radius="8px",
         width="100%",
     )
@@ -27,8 +28,8 @@ def resumen_item(icono: str, etiqueta: str, valor: str) -> rx.Component:
 
 def render_opcion(opcion: str) -> rx.Component:
     return rx.hstack(
-        rx.icon("circle", size=10, color="#6366f1"),
-        rx.text(opcion, size="2", color="#374151"),
+        rx.icon("circle", size=10, color=color_indigo_suave),
+        rx.text(opcion, size="2", color=color_texto_secundario),
         spacing="2",
         align="center",
         width="100%",
@@ -46,11 +47,11 @@ def render_pregunta_detalle(pregunta: PreguntaDetalleUI) -> rx.Component:
                 align="center",
                 spacing="2",
             ),
-            rx.text(pregunta.enunciado, color="#111827", size="3", white_space="pre-wrap", line_height="1.6"),
+            rx.text(pregunta.enunciado, color=color_texto_principal, size="3", white_space="pre-wrap", line_height="1.6"),
             rx.cond(
                 pregunta.opciones.length() > 0,
                 rx.vstack(
-                    rx.text("Opciones", size="2", color="#374151", weight="bold"),
+                    rx.text("Opciones", size="2", color=color_texto_secundario, weight="bold"),
                     rx.vstack(
                         rx.foreach(pregunta.opciones, render_opcion),
                         width="100%",
@@ -65,14 +66,14 @@ def render_pregunta_detalle(pregunta: PreguntaDetalleUI) -> rx.Component:
                 pregunta.respuesta_correcta != "",
                 rx.box(
                     rx.hstack(
-                        rx.icon("check", size=16, color="#16a34a"),
-                        rx.text("Respuesta correcta:", size="2", color="#166534", weight="bold"),
-                        rx.text(pregunta.respuesta_correcta, size="2", color="#166534"),
+                        rx.icon("check", size=16, color=color_exito),
+                        rx.text("Respuesta correcta:", size="2", color=color_exito_oscuro, weight="bold"),
+                        rx.text(pregunta.respuesta_correcta, size="2", color=color_exito_oscuro),
                         spacing="2",
                         align="center",
                     ),
                     padding="0.75em",
-                    background_color="#f0fdf4",
+                    background_color=color_exito_fondo,
                     border="1px solid #bbf7d0",
                     border_radius="8px",
                     width="100%",
@@ -85,7 +86,7 @@ def render_pregunta_detalle(pregunta: PreguntaDetalleUI) -> rx.Component:
         width="100%",
         padding="1.25em",
         background_color="white",
-        border="1px solid #e5e7eb",
+        border=f"1px solid {color_borde}",
         box_shadow="sm",
     )
 
@@ -105,8 +106,8 @@ def render_estudiante_asignado(estudiante: EstudianteAsignadoUI) -> rx.Component
     return rx.hstack(
         rx.avatar(fallback=estudiante.nombre[:2].upper(), size="2", radius="full", color_scheme="indigo"),
         rx.vstack(
-            rx.text(estudiante.nombre, size="2", color="#111827", weight="bold"),
-            rx.text(estudiante.correo, size="1", color="#6b7280"),
+            rx.text(estudiante.nombre, size="2", color=color_texto_principal, weight="bold"),
+            rx.text(estudiante.correo, size="1", color=color_texto_gris),
             spacing="0",
             align_items="start",
         ),
@@ -125,7 +126,7 @@ def render_estudiante_asignado(estudiante: EstudianteAsignadoUI) -> rx.Component
         ),
         width="100%",
         padding="0.9em 0",
-        border_bottom="1px solid #f3f4f6",
+        border_bottom=f"1px solid {color_fondo_claro}",
         align="center",
     )
 
@@ -133,14 +134,14 @@ def render_estudiante_asignado(estudiante: EstudianteAsignadoUI) -> rx.Component
 def panel_detalles() -> rx.Component:
     return rx.box(
         rx.vstack(
-            rx.heading("Información de la tarea", size="4", color="#111827"),
-            rx.text(MisTareasState.tarea_detalle.descripcion, color="#374151", size="3", white_space="pre-wrap", line_height="1.6"),
+            rx.heading("Información de la tarea", size="4", color=color_texto_principal),
+            rx.text(MisTareasState.tarea_detalle.descripcion, color=color_texto_secundario, size="3", white_space="pre-wrap", line_height="1.6"),
             rx.divider(margin_y="0.75em"),
             rx.cond(
                 MisTareasState.tarea_detalle.enunciado != "",
                 rx.vstack(
-                    rx.text("Enunciado", size="2", color="#374151", weight="bold"),
-                    rx.text(MisTareasState.tarea_detalle.enunciado, color="#4b5563", size="2", white_space="pre-wrap", line_height="1.6"),
+                    rx.text("Enunciado", size="2", color=color_texto_secundario, weight="bold"),
+                    rx.text(MisTareasState.tarea_detalle.enunciado, color=color_texto_terciario, size="2", white_space="pre-wrap", line_height="1.6"),
                     align_items="start",
                     width="100%",
                 )
@@ -161,7 +162,7 @@ def panel_detalles() -> rx.Component:
         ),
         padding="1.5em",
         background_color="white",
-        border="1px solid #e5e7eb",
+        border=f"1px solid {color_borde}",
         border_radius="8px",
         border_top_left_radius="0",
     )
@@ -178,8 +179,8 @@ def panel_preguntas() -> rx.Component:
             ),
             rx.center(
                 rx.vstack(
-                    rx.icon("circle-help", size=40, color="#9ca3af"),
-                    rx.text("Esta tarea no tiene preguntas registradas.", color="#6b7280", size="2"),
+                    rx.icon("circle-help", size=40, color=color_texto_claro),
+                    rx.text("Esta tarea no tiene preguntas registradas.", color=color_texto_gris, size="2"),
                     align="center",
                 ),
                 width="100%",
@@ -188,7 +189,7 @@ def panel_preguntas() -> rx.Component:
         ),
         padding="1.5em",
         background_color="white",
-        border="1px solid #e5e7eb",
+        border=f"1px solid {color_borde}",
         border_radius="8px",
         border_top_left_radius="0",
     )
@@ -205,8 +206,8 @@ def panel_estudiantes() -> rx.Component:
             ),
             rx.center(
                 rx.vstack(
-                    rx.icon("users-round", size=40, color="#9ca3af"),
-                    rx.text("No hay estudiantes asignados a esta tarea.", color="#6b7280", size="2"),
+                    rx.icon("users-round", size=40, color=color_texto_claro),
+                    rx.text("No hay estudiantes asignados a esta tarea.", color=color_texto_gris, size="2"),
                     align="center",
                 ),
                 width="100%",
@@ -215,7 +216,7 @@ def panel_estudiantes() -> rx.Component:
         ),
         padding="1.5em",
         background_color="white",
-        border="1px solid #e5e7eb",
+        border=f"1px solid {color_borde}",
         border_radius="8px",
         border_top_left_radius="0",
     )
@@ -226,9 +227,9 @@ def contenido_detalle_tarea() -> rx.Component:
         MisTareasState.error_detalle,
         rx.center(
             rx.vstack(
-                rx.icon("file-warning", size=48, color="#ef4444"),
-                rx.heading("Tarea no encontrada", size="6", color="#111827"),
-                rx.text("La tarea no existe o no tienes permiso para verla.", color="#6b7280"),
+                rx.icon("file-warning", size=48, color=color_error),
+                rx.heading("Tarea no encontrada", size="6", color=color_texto_principal),
+                rx.text("La tarea no existe o no tienes permiso para verla.", color=color_texto_gris),
                 rx.button("Volver a mis tareas", on_click=rx.redirect("/mis-tareas"), color_scheme="indigo", cursor="pointer"),
                 align="center",
                 spacing="3",
@@ -240,7 +241,7 @@ def contenido_detalle_tarea() -> rx.Component:
             rx.button(
                 rx.icon("arrow-left", size=16),
                 "Volver a mis tareas",
-                color="#4b5563",
+                color=color_texto_terciario,
                 on_click=rx.redirect("/mis-tareas"),
                 variant="ghost",
                 color_scheme="gray",
@@ -250,13 +251,13 @@ def contenido_detalle_tarea() -> rx.Component:
             rx.hstack(
                 rx.vstack(
                     rx.hstack(
-                        rx.heading(MisTareasState.tarea_detalle.titulo, size="8", weight="bold", color="#111827"),
+                        rx.heading(MisTareasState.tarea_detalle.titulo, size="8", weight="bold", color=color_texto_principal),
                         rx.badge(MisTareasState.tarea_detalle.tipo, color_scheme="indigo", variant="solid"),
                         spacing="3",
                         align="center",
                         flex_wrap="wrap",
                     ),
-                    rx.text(MisTareasState.tarea_detalle.grupo, color="#4b5563", size="3", weight="medium"),
+                    rx.text(MisTareasState.tarea_detalle.grupo, color=color_texto_terciario, size="3", weight="medium"),
                     align_items="start",
                     spacing="2",
                 ),
@@ -314,26 +315,26 @@ def contenido_detalle_tarea() -> rx.Component:
             rx.tabs.root(
                 rx.tabs.list(
                     rx.tabs.trigger(
-                        rx.hstack(rx.icon("info", size=16, color="#111827"), rx.text("Detalles", weight="bold", color="#111827")),
+                        rx.hstack(rx.icon("info", size=16, color=color_texto_principal), rx.text("Detalles", weight="bold", color=color_texto_principal)),
                         value="detalles",
                         cursor="pointer",
-                        color="#111827",
+                        color=color_texto_principal,
                     ),
                     rx.tabs.trigger(
-                        rx.hstack(rx.icon("circle-help", size=16, color="#111827"), rx.text("Preguntas", weight="bold", color="#111827")),
+                        rx.hstack(rx.icon("circle-help", size=16, color=color_texto_principal), rx.text("Preguntas", weight="bold", color=color_texto_principal)),
                         value="preguntas",
                         cursor="pointer",
-                        color="#111827",
+                        color=color_texto_principal,
                     ),
                     rx.tabs.trigger(
-                        rx.hstack(rx.icon("users", size=16, color="#111827"), rx.text("Estudiantes", weight="bold", color="#111827")),
+                        rx.hstack(rx.icon("users", size=16, color=color_texto_principal), rx.text("Estudiantes", weight="bold", color=color_texto_principal)),
                         value="estudiantes",
                         cursor="pointer",
-                        color="#111827",
+                        color=color_texto_principal,
                     ),
                     size="2",
                     background_color="white",
-                    border="1px solid #e5e7eb",
+                    border=f"1px solid {color_borde}",
                     border_bottom="0",
                     border_top_left_radius="8px",
                     border_top_right_radius="8px",
@@ -365,7 +366,7 @@ def tarea_detail_page() -> rx.Component:
             ),
             flex="1",
             height="100vh",
-            background_color="#f9fafb",
+            background_color=color_fondo_pagina,
             overflow="auto",
         ),
         width="100%",

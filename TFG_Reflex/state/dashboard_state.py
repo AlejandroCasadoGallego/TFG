@@ -82,49 +82,44 @@ class DashboardState(BaseState):
                 })
 
     def _cargar_stats_estudiante(self, session, usuario):
-        from ..models.usuarios import EstudianteGrupo
-        grupos_ids = session.exec(
-            sqlmodel.select(EstudianteGrupo.grupo_id).where(EstudianteGrupo.estudiante_id == usuario.id_usuario)
-        ).all()
-        
-        if not grupos_ids:
-            self.tareas_pendientes = "0"
-            self.tareas_completadas = "0"
-            self.mi_media = "0.0"
-            return
+        from ..models.tarea import EstudianteTarea, Ejercicio, Pregunta
 
         ahora = datetime.now()
-        tareas_totales = session.exec(
-            sqlmodel.select(Tarea).where(
-                (Tarea.grupo_id.in_(grupos_ids)) &
-                (Tarea.fechaFin >= ahora)
-            )
+
+        resultados = session.exec(
+            sqlmodel.select(Tarea, EstudianteTarea)
+            .join(EstudianteTarea, Tarea.id_tarea == EstudianteTarea.id_tarea)
+            .where(EstudianteTarea.id_estudiante == usuario.id_usuario)
         ).all()
-        
-        resoluciones = session.exec(
-            sqlmodel.select(ResolucionTarea).where(ResolucionTarea.estudiante_id == usuario.id_usuario)
-        ).all()
-        
-        tareas_entregadas_ids = [r.tarea_id for r in resoluciones if r.estado.lower() in ["entregado", "corregida"]]
-        
-        pendientes = [t for t in tareas_totales if t.id_tarea not in tareas_entregadas_ids]
-        self.tareas_pendientes = str(len(pendientes))
-        
-        completadas = [r for r in resoluciones if r.estado.lower() == "corregida"]
-        self.tareas_completadas = str(len(completadas))
-        
-        if completadas:
-            suma_base_10 = 0.0
-            from ..models.tarea import Pregunta
-            for r in completadas:
-                preguntas_tarea = session.exec(sqlmodel.select(Pregunta).where(Pregunta.tarea_id == r.tarea_id)).all()
+
+        count_pendientes = 0
+        count_completadas = 0
+        suma_base_10 = 0.0
+
+        for tarea, estudiante_tarea in resultados:
+            resolucion = session.exec(
+                sqlmodel.select(ResolucionTarea).where(
+                    (ResolucionTarea.tarea_id == tarea.id_tarea) &
+                    (ResolucionTarea.estudiante_id == usuario.id_usuario)
+                )
+            ).first()
+
+            if resolucion and resolucion.estado == "corregida" and resolucion.calificacion_liberada:
+                count_completadas += 1
+                preguntas_tarea = session.exec(sqlmodel.select(Pregunta).where(Pregunta.tarea_id == tarea.id_tarea)).all()
                 suma_maximas = sum(float(p.calificacion_maxima) for p in preguntas_tarea) if preguntas_tarea else 10.0
                 if suma_maximas == 0:
                     suma_maximas = 10.0
-                calif_obtenida = float(r.calificacionTotal)
-                suma_base_10 += (calif_obtenida / suma_maximas) * 10.0
-                
-            media = suma_base_10 / len(completadas)
-            self.mi_media = f"{media:.1f}"
-        else:
-            self.mi_media = "0.0"
+                suma_base_10 += (float(resolucion.calificacionTotal) / suma_maximas) * 10.0
+            elif tarea.fechaFin >= ahora:
+                ejercicio = session.exec(sqlmodel.select(Ejercicio).where(Ejercicio.tarea_id == tarea.id_tarea)).first()
+                permite_reintentos = ejercicio.permiteReintentos if ejercicio else False
+                if resolucion and not permite_reintentos:
+                    pass
+                else:
+                    count_pendientes += 1
+
+        self.tareas_pendientes = str(count_pendientes)
+        self.tareas_completadas = str(count_completadas)
+        self.mi_media = f"{(suma_base_10 / count_completadas):.1f}" if count_completadas > 0 else "0.0"
+

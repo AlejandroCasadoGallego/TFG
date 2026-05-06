@@ -2,6 +2,7 @@ import reflex as rx
 from ..state.base_state import BaseState
 from ..state.pattern_detail_state import PatternDetailState
 from ..components.layout import sidebar_layout, header_component, public_header
+from ..colores import *
 
 
 def badge_categoria_detalle(categoria: str) -> rx.Component:
@@ -12,7 +13,7 @@ def miniatura_clicable(ruta_imagen: str) -> rx.Component:
     return rx.dialog.root(
         rx.dialog.trigger(
             rx.box(
-                rx.image(src=ruta_imagen, width="120px", height="120px", object_fit="contain", border_radius="8px", border="1px solid #e5e7eb", background_color="#f8fafc"),
+                rx.image(src=ruta_imagen, width="120px", height="120px", object_fit="contain", border_radius="8px", border=f"1px solid {color_borde}", background_color=color_fondo_hover),
                 rx.center(
                     rx.icon("zoom-in", color="white", size=24),
                     position="absolute", top="0", left="0", width="100%", height="100%", background_color="rgba(0,0,0,0.4)", border_radius="8px", opacity="0", _hover={"opacity": "1"}, transition="opacity 0.2s"
@@ -29,9 +30,9 @@ def miniatura_clicable(ruta_imagen: str) -> rx.Component:
 
 def panel_teoria() -> rx.Component:
     return rx.vstack(
-        rx.heading("Concepto Principal", size="5", color="#111827", margin_bottom="0.5em"),
-        rx.text(PatternDetailState.patron_actual["descripcion"], color="#374151", size="3", line_height="1.6"),
-        width="100%", padding="2em", background_color="white", border="1px solid #e5e7eb", border_radius="8px", border_top_left_radius="0"
+        rx.heading("Concepto Principal", size="5", color=color_texto_principal, margin_bottom="0.5em"),
+        rx.text(PatternDetailState.patron_actual["descripcion"], color=color_texto_secundario, size="3", line_height="1.6"),
+        width="100%", padding="2em", background_color="white", border=f"1px solid {color_borde}", border_radius="8px", border_top_left_radius="0"
     )
 
 def panel_analisis() -> rx.Component:
@@ -39,18 +40,18 @@ def panel_analisis() -> rx.Component:
         rx.cond(
             PatternDetailState.patron_actual["ventajas"] != "",
             rx.card(
-                rx.vstack(rx.hstack(rx.icon("circle-check-big", color="#16a34a"), rx.heading("Ventajas", size="4", color="#166534")), rx.divider(), rx.text(PatternDetailState.patron_actual["ventajas"], color="#374151", white_space="pre-wrap")),
-                background_color="#f0fdf4", border="1px solid #bbf7d0", width="100%"
+                rx.vstack(rx.hstack(rx.icon("circle-check-big", color=color_exito), rx.heading("Ventajas", size="4", color=color_exito_oscuro)), rx.divider(), rx.text(PatternDetailState.patron_actual["ventajas"], color=color_texto_secundario, white_space="pre-wrap")),
+                background_color=color_exito_fondo, border="1px solid #bbf7d0", width="100%"
             )
         ),
         rx.cond(
             PatternDetailState.patron_actual["desventajas"] != "",
             rx.card(
-                rx.vstack(rx.hstack(rx.icon("circle-x", color="#dc2626"), rx.heading("Desventajas", size="4", color="#991b1b")), rx.divider(), rx.text(PatternDetailState.patron_actual["desventajas"], color="#374151", white_space="pre-wrap")),
-                background_color="#fef2f2", border="1px solid #fecaca", width="100%"
+                rx.vstack(rx.hstack(rx.icon("circle-x", color=color_error_oscuro), rx.heading("Desventajas", size="4", color=color_error_intenso)), rx.divider(), rx.text(PatternDetailState.patron_actual["desventajas"], color=color_texto_secundario, white_space="pre-wrap")),
+                background_color=color_error_fondo_claro, border="1px solid #fecaca", width="100%"
             )
         ),
-        columns="2", spacing="5", width="100%", padding="2em", background_color="white", border="1px solid #e5e7eb", border_radius="8px", border_top_left_radius="0"
+        columns="2", spacing="5", width="100%", padding="2em", background_color="white", border=f"1px solid {color_borde}", border_radius="8px", border_top_left_radius="0"
     )
 
 def panel_implementacion() -> rx.Component:
@@ -58,31 +59,31 @@ def panel_implementacion() -> rx.Component:
         rx.cond(
             PatternDetailState.patron_actual["ejemplos"] != "",
             rx.vstack(
-                rx.heading("Ejemplo de Uso", size="5", color="#111827"),
-                rx.text(PatternDetailState.patron_actual["ejemplos"], color="#374151", margin_bottom="2em", white_space="pre-wrap"),
+                rx.heading("Ejemplo de Uso", size="5", color=color_texto_principal),
+                rx.text(PatternDetailState.patron_actual["ejemplos"], color=color_texto_secundario, margin_bottom="2em", white_space="pre-wrap"),
                 width="100%", align_items="start"
             )
         ),
         rx.cond(
             PatternDetailState.patron_actual["pseudocodigo"] != "",
             rx.vstack(
-                rx.heading("Pseudocódigo Estructural", size="5", color="#111827"),
+                rx.heading("Pseudocódigo Estructural", size="5", color=color_texto_principal),
                 rx.box(
                     rx.text(
                         PatternDetailState.patron_actual["pseudocodigo"],
                         font_family="'Courier New', Courier, monospace",
-                        color="#f8fafc",
+                        color=color_fondo_hover,
                         size="3",
                         white_space="pre", 
                         line_height="1.6"
                     ),
-                    width="100%", background_color="#1e293b", padding="1.5em", border_radius="8px", 
+                    width="100%", background_color=color_oscuro_profundo, padding="1.5em", border_radius="8px", 
                     overflow_x="auto", margin_top="0.5em", box_shadow="inset 0 2px 4px 0 rgb(0 0 0 / 0.05)", border="1px solid #0f172a"
                 ),
                 width="100%", align_items="start"
             )
         ),
-        width="100%", padding="2em", background_color="white", border="1px solid #e5e7eb", border_radius="8px", border_top_left_radius="0"
+        width="100%", padding="2em", background_color="white", border=f"1px solid {color_borde}", border_radius="8px", border_top_left_radius="0"
     )
 
 def render_relacion(rel: rx.Var) -> rx.Component:
@@ -102,14 +103,14 @@ def render_relacion(rel: rx.Var) -> rx.Component:
                         size=20,
                         color="white",
                     ),
-                    background_color="#4f46e5",
+                    background_color=color_primario,
                     border_radius="8px",
                     width="40px",
                     height="40px",
                     flex_shrink="0",
                 ),
                 rx.vstack(
-                    rx.text(rel["nombre"], weight="bold", size="3", color="#111827"),
+                    rx.text(rel["nombre"], weight="bold", size="3", color=color_texto_principal),
                     rx.badge(rel["categoria"], color_scheme=color_cat, variant="soft", size="1"),
                     spacing="1",
                     align_items="start",
@@ -128,12 +129,12 @@ def render_relacion(rel: rx.Var) -> rx.Component:
             width="100%",
             cursor="pointer",
             _hover={
-                "border_color": "#a5b4fc",
+                "border_color": color_indigo_claro,
                 "box_shadow": "0 4px 6px -1px rgba(79, 70, 229, 0.1)",
                 "transform": "translateY(-1px)",
             },
             transition="all 0.15s ease",
-            border="1px solid #e5e7eb",
+            border=f"1px solid {color_borde}",
         ),
         href=rx.cond(
             rel["id"] != "",
@@ -150,8 +151,8 @@ def panel_relaciones() -> rx.Component:
         PatternDetailState.patrones_relacionados.length() > 0,
         rx.vstack(
             rx.hstack(
-                rx.icon("git-branch", size=22, color="#4f46e5"),
-                rx.heading("Patrones Relacionados", size="5", color="#111827"),
+                rx.icon("git-branch", size=22, color=color_primario),
+                rx.heading("Patrones Relacionados", size="5", color=color_texto_principal),
                 align="center",
                 spacing="2",
             ),
@@ -167,7 +168,7 @@ def panel_relaciones() -> rx.Component:
             width="100%",
             padding="2em",
             background_color="white",
-            border="1px solid #e5e7eb",
+            border=f"1px solid {color_borde}",
             border_radius="8px",
             margin_top="1.5em",
             spacing="4",
@@ -178,9 +179,9 @@ def panel_relaciones() -> rx.Component:
 def contenido_detalle() -> rx.Component:
     return rx.cond(
         PatternDetailState.error_carga,
-        rx.center(rx.vstack(rx.icon("file-warning", size=48, color="#ef4444"), rx.heading("Patrón no encontrado o inactivo", size="6"), rx.button("Volver", on_click=rx.redirect("/biblioteca"), cursor="pointer"))),
+        rx.center(rx.vstack(rx.icon("file-warning", size=48, color=color_error), rx.heading("Patrón no encontrado o inactivo", size="6"), rx.button("Volver", on_click=rx.redirect("/biblioteca"), cursor="pointer"))),
         rx.vstack(
-            rx.button(rx.icon("arrow-left", size=16), "Volver a la Biblioteca", color="#4b5563", on_click=rx.redirect("/biblioteca"), variant="ghost", color_scheme="gray", cursor="pointer", margin_bottom="1em"),
+            rx.button(rx.icon("arrow-left", size=16), "Volver a la Biblioteca", color=color_texto_terciario, on_click=rx.redirect("/biblioteca"), variant="ghost", color_scheme="gray", cursor="pointer", margin_bottom="1em"),
             
             rx.hstack(
                 rx.hstack(
@@ -190,7 +191,7 @@ def contenido_detalle() -> rx.Component:
                     ),
                     rx.vstack(
                         rx.hstack(
-                            rx.heading(PatternDetailState.patron_actual["nombre"], size="8", weight="bold", color="#111827"),
+                            rx.heading(PatternDetailState.patron_actual["nombre"], size="8", weight="bold", color=color_texto_principal),
                             rx.cond((BaseState.usuario_rol == "admin") | (BaseState.usuario_rol == "docente"), rx.badge(rx.cond(PatternDetailState.patron_actual["activo"], "Activo", "Inactivo"), color_scheme=rx.cond(PatternDetailState.patron_actual["activo"], "green", "red"), variant="solid")),
                             align="center", spacing="3"
                         ),
@@ -229,14 +230,14 @@ def contenido_detalle() -> rx.Component:
             rx.tabs.root(
                 rx.tabs.list(
                     rx.tabs.trigger(
-                        rx.hstack(rx.icon("book-text", size=18, color="#374151"), rx.text("Concepto y Teoría", color="#374151", weight="bold")), 
+                        rx.hstack(rx.icon("book-text", size=18, color=color_texto_secundario), rx.text("Concepto y Teoría", color=color_texto_secundario, weight="bold")), 
                         value="concepto", cursor="pointer"
                     ),
                     
                     rx.cond(
                         (PatternDetailState.patron_actual["ventajas"] != "") | (PatternDetailState.patron_actual["desventajas"] != ""),
                         rx.tabs.trigger(
-                            rx.hstack(rx.icon("scale", size=18, color="#374151"), rx.text("Pros y Contras", color="#374151", weight="bold")), 
+                            rx.hstack(rx.icon("scale", size=18, color=color_texto_secundario), rx.text("Pros y Contras", color=color_texto_secundario, weight="bold")), 
                             value="analisis", cursor="pointer"
                         )
                     ),
@@ -244,7 +245,7 @@ def contenido_detalle() -> rx.Component:
                     rx.cond(
                         (PatternDetailState.patron_actual["ejemplos"] != "") | (PatternDetailState.patron_actual["pseudocodigo"] != ""),
                         rx.tabs.trigger(
-                            rx.hstack(rx.icon("code", size=18, color="#374151"), rx.text("Implementación", color="#374151", weight="bold")), 
+                            rx.hstack(rx.icon("code", size=18, color=color_texto_secundario), rx.text("Implementación", color=color_texto_secundario, weight="bold")), 
                             value="implementacion", cursor="pointer"
                         )
                     ),
@@ -277,6 +278,6 @@ def contenido_detalle() -> rx.Component:
 def pattern_detail_page() -> rx.Component:
     return rx.cond(
         BaseState.usuario_actual == "",
-        rx.vstack(public_header(), rx.box(contenido_detalle(), padding="3em", width="100%"), width="100%", min_height="100vh", background_color="#f9fafb"),
-        rx.flex(sidebar_layout(), rx.box(rx.vstack(header_component(titulo=""), contenido_detalle(), padding="3em", width="100%"), flex="1", height="100vh", background_color="#f9fafb", overflow="auto"), width="100%")
+        rx.vstack(public_header(), rx.box(contenido_detalle(), padding="3em", width="100%"), width="100%", min_height="100vh", background_color=color_fondo_pagina),
+        rx.flex(sidebar_layout(), rx.box(rx.vstack(header_component(titulo=""), contenido_detalle(), padding="3em", width="100%"), flex="1", height="100vh", background_color=color_fondo_pagina, overflow="auto"), width="100%")
     )

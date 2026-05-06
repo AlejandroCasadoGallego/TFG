@@ -1,41 +1,31 @@
 import reflex as rx
 from ..state.base_state import BaseState
 from .ui_elements import sidebar_item
+from ..colores import *
 
 def menu_estudiante():
     return rx.vstack(
-        rx.text("GESTIÓN ACADÉMICA", size="1", weight="bold", color="#9ca3af", margin_top="1em", padding_left="1em"),
+        rx.text("GESTIÓN ACADÉMICA", size="1", weight="bold", color=color_texto_claro, margin_top="1em", padding_left="1em"),
         sidebar_item("Grupos", "users", "/mis-grupos-estudiante"),
-        sidebar_item("Materiales", "folder-open", "#"),
-        sidebar_item("Calendario Entregas", "calendar-clock", "#"),
-        
-        rx.text("PROGRESO", size="1", weight="bold", color="#9ca3af", margin_top="1em", padding_left="1em"),
-        sidebar_item("Calificaciones", "award", "#"),
-        sidebar_item("Histórico Entregas", "history", "#"),
         sidebar_item("Mis Tareas", "clipboard-list", "/mis-tareas-estudiante"),
+        sidebar_item("Mi Resumen", "bar-chart-3", "/mi-resumen"),
         
-        rx.text("COMUNICACIÓN", size="1", weight="bold", color="#9ca3af", margin_top="1em", padding_left="1em"),
+        rx.text("COMUNICACIÓN", size="1", weight="bold", color=color_texto_claro, margin_top="1em", padding_left="1em"),
         sidebar_item("Notificaciones", "bell", "/notificaciones"),
-        sidebar_item("Avisos", "megaphone", "#"),
         width="100%",
         spacing="1"
     )
 
 def menu_docente():
     return rx.vstack(
-        rx.text("CONTENIDO", size="1", weight="bold", color="#9ca3af", margin_top="1em", padding_left="1em"),
+        rx.text("CONTENIDO", size="1", weight="bold", color=color_texto_claro, margin_top="1em", padding_left="1em"),
         sidebar_item("Crear Tarea", "circle-plus", "/crear-tarea"),
         sidebar_item("Mis Tareas", "list-checks", "/mis-tareas"), 
-        sidebar_item("Publicar Materiales", "upload", "#"),
-        sidebar_item("Gestión Materiales", "files", "#"),
         
-        rx.text("SEGUIMIENTO", size="1", weight="bold", color="#9ca3af", margin_top="1em", padding_left="1em"),
+        rx.text("SEGUIMIENTO", size="1", weight="bold", color=color_texto_claro, margin_top="1em", padding_left="1em"),
         sidebar_item("Mis Grupos", "users", "/mis-grupos"),
-        sidebar_item("Ver Entregas", "inbox", "#"),
-        sidebar_item("Estadísticas", "bar-chart-3", "#"),
         
-        rx.text("COMUNICACIÓN", size="1", weight="bold", color="#9ca3af", margin_top="1em", padding_left="1em"),
-        sidebar_item("Anuncios Clase", "megaphone", "#"),
+        rx.text("COMUNICACIÓN", size="1", weight="bold", color=color_texto_claro, margin_top="1em", padding_left="1em"),
         sidebar_item("Mensajes Alumnos", "message-square", "/mensajes-alumnos"),
         width="100%",
         spacing="1"
@@ -43,27 +33,21 @@ def menu_docente():
 
 def menu_administrador():
     return rx.vstack(
-        rx.text("USUARIOS", size="1", weight="bold", color="#9ca3af", margin_top="1em", padding_left="1em"),
+        rx.text("USUARIOS", size="1", weight="bold", color=color_texto_claro, margin_top="1em", padding_left="1em"),
         sidebar_item("Gestión Docentes", "graduation-cap", "/gestion-docentes"),
         sidebar_item("Gestión Estudiantes", "users", "/gestion-estudiantes"),
-        sidebar_item("Resetear Contraseñas", "key-round", "#"),
-        
-        rx.text("SISTEMA", size="1", weight="bold", color="#9ca3af", margin_top="1em", padding_left="1em"),
-        sidebar_item("Gestión de Patrones", "layout-template", "#"),
-        sidebar_item("Asignar Docentes", "user-plus", "#"),
-        sidebar_item("Configuración General", "settings-2", "#"),
-        sidebar_item("Control Accesos", "shield-check", "#"),
+        sidebar_item("Resetear Contraseñas", "key-round", "/resetear-contrasenas"),
         width="100%",
         spacing="1"
     )
 
 def header_component(titulo: str = "Panel de Control")-> rx.Component:
     return rx.hstack(
-        rx.heading(titulo, size="6", weight="bold", color="#111827"),
+        rx.heading(titulo, size="6", weight="bold", color=color_texto_principal),
         rx.spacer(),
         rx.link(
             rx.box(
-                rx.icon("bell", size=24, color="#6b7280"),
+                rx.icon("bell", size=24, color=color_texto_gris),
                 rx.cond(
                     BaseState.notificaciones_sin_leer > 0,
                     rx.box(
@@ -71,7 +55,7 @@ def header_component(titulo: str = "Panel de Control")-> rx.Component:
                         position="absolute",
                         top="-5px",
                         right="-5px",
-                        background_color="#ef4444",
+                        background_color=color_error,
                         border_radius="full",
                         width="18px",
                         height="18px",
@@ -91,8 +75,8 @@ def header_component(titulo: str = "Panel de Control")-> rx.Component:
             rx.hstack(
                 rx.avatar(fallback=BaseState.usuario_actual[:2], size="4", radius="full", color_scheme="indigo"),
                 rx.vstack(
-                    rx.text(BaseState.usuario_actual, weight="bold", size="3", color="#111827"),
-                    rx.text(BaseState.usuario_rol.capitalize(), color="#6b7280", size="2"),
+                    rx.text(BaseState.usuario_actual, weight="bold", size="3", color=color_texto_principal),
+                    rx.text(BaseState.usuario_rol.capitalize(), color=color_texto_gris, size="2"),
                     spacing="0",
                     align_items="end"
                 ),
@@ -112,13 +96,13 @@ def header_component(titulo: str = "Panel de Control")-> rx.Component:
 def sidebar_layout() -> rx.Component:
     return rx.vstack(
         rx.hstack(
-            rx.icon("library", color="#4f46e5", size=32),
-            rx.heading("PatternLab", size="5", weight="bold", color="#111827"),
+            rx.icon("library", color=color_primario, size=32),
+            rx.heading("PatternLab", size="5", weight="bold", color=color_texto_principal),
             align="center",
             spacing="3",
             padding="2em",
         ),
-        rx.divider(background_color="#e5e7eb"),
+        rx.divider(background_color=color_borde),
         
         rx.scroll_area(
             rx.vstack(
@@ -146,8 +130,8 @@ def sidebar_layout() -> rx.Component:
             rx.button(
                 rx.hstack(rx.icon("log-out", size=18), rx.text("Cerrar Sesión")),
                 on_click=BaseState.cerrar_sesion,
-                background_color="#fee2e2",
-                color="#991b1b",
+                background_color=color_error_fondo,
+                color=color_error_intenso,
                 width="100%"
             ),
             padding="2em",
@@ -156,7 +140,7 @@ def sidebar_layout() -> rx.Component:
         width="280px",
         height="100vh",
         background_color="white",
-        border_right="1px solid #e5e7eb",
+        border_right=f"1px solid {color_borde}",
         display=["none", "none", "flex", "flex"]
     )
 
@@ -164,8 +148,8 @@ def public_header() -> rx.Component:
     return rx.hstack(
         rx.link(
             rx.hstack(
-                rx.icon("library", color="#4f46e5", size=28),
-                rx.heading("PatternLab", size="5", weight="bold", color="#111827"),
+                rx.icon("library", color=color_primario, size=28),
+                rx.heading("PatternLab", size="5", weight="bold", color=color_texto_principal),
                 align="center", spacing="3", cursor="pointer"
             ),
             href="/", underline="none"
@@ -176,5 +160,5 @@ def public_header() -> rx.Component:
             rx.link(rx.button("Regístrate Gratis", color_scheme="indigo", cursor="pointer"), href="/register"),
             spacing="3"
         ),
-        width="100%", padding="1em 2em", background_color="white", border_bottom="1px solid #e5e7eb", align="center"
+        width="100%", padding="1em 2em", background_color="white", border_bottom=f"1px solid {color_borde}", align="center"
     )

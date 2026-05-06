@@ -39,9 +39,9 @@ from .state.ver_correccion_state import VerCorreccionState
 from .pages.leyenda_diagramas import leyenda_diagramas_page
 from .pages.informe_estudiante import informe_estudiante_page
 from .state.informe_estudiante_state import InformeEstudianteState
+from .pages.mi_resumen import mi_resumen_page
+from .pages.resetear_contrasenas import resetear_contrasenas_page
 from .models import *
-
-#
 
 app = rx.App(
     theme=rx.theme(appearance="light", has_background=True, radius="large", accent_color="indigo"))
@@ -73,3 +73,5 @@ app.add_page(mensajes_alumnos_page, route="/mensajes-alumnos", on_load=[BaseStat
 app.add_page(leyenda_diagramas_page, route="/leyenda-diagramas")
 app.add_page(informe_estudiante_page, route="/informe-estudiante/[id_estudiante]", on_load=[BaseState.check_docente, InformeEstudianteState.cargar_informe])
 app.add_page(ver_correccion_page, route="/ver-correccion/[id_tarea]", on_load=[BaseState.check_estudiante, VerCorreccionState.cargar_correccion])
+app.add_page(mi_resumen_page, route="/mi-resumen", on_load=[BaseState.check_estudiante, InformeEstudianteState.cargar_mi_informe])
+app.add_page(resetear_contrasenas_page, route="/resetear-contrasenas", on_load=[BaseState.check_admin, AdminState.cargar_usuarios_reset])

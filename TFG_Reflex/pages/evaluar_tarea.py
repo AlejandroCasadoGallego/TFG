@@ -1,6 +1,7 @@
 import reflex as rx
 from ..state.evaluar_tarea_state import EvaluarTareaState, RespuestaUI
 from ..components.layout import sidebar_layout, header_component
+from ..colores import *
 
 def render_respuesta(respuesta: RespuestaUI) -> rx.Component:
     return rx.card(
@@ -12,11 +13,11 @@ def render_respuesta(respuesta: RespuestaUI) -> rx.Component:
                 align="center",
                 spacing="2",
             ),
-            rx.text(respuesta.enunciado, color="#111827", size="3", white_space="pre-wrap", line_height="1.6", weight="medium"),
+            rx.text(respuesta.enunciado, color=color_texto_principal, size="3", white_space="pre-wrap", line_height="1.6", weight="medium"),
             
             rx.divider(margin_y="0.5em"),
             
-            rx.text("Respuesta del alumno:", size="2", color="#374151", weight="bold"),
+            rx.text("Respuesta del alumno:", size="2", color=color_texto_secundario, weight="bold"),
             
             rx.cond(
                 respuesta.respuesta_diagrama != "",
@@ -24,9 +25,9 @@ def render_respuesta(respuesta: RespuestaUI) -> rx.Component:
                     rx.html(respuesta.respuesta_diagrama),
                     width="100%",
                     min_height="300px",
-                    border="1px solid #e5e7eb",
+                    border=f"1px solid {color_borde}",
                     border_radius="8px",
-                    background_color="#f9fafb",
+                    background_color=color_fondo_pagina,
                     padding="1em",
                     overflow="auto",
                     display="flex",
@@ -36,14 +37,14 @@ def render_respuesta(respuesta: RespuestaUI) -> rx.Component:
                 rx.cond(
                     respuesta.respuesta_texto != "",
                     rx.box(
-                        rx.text(respuesta.respuesta_texto, size="2", color="#111827", white_space="pre-wrap"),
+                        rx.text(respuesta.respuesta_texto, size="2", color=color_texto_principal, white_space="pre-wrap"),
                         width="100%",
                         padding="1em",
-                        background_color="#f3f4f6",
+                        background_color=color_fondo_claro,
                         border_radius="8px",
-                        border="1px solid #e5e7eb",
+                        border=f"1px solid {color_borde}",
                     ),
-                    rx.text("El alumno no ha respondido a esta pregunta.", size="2", color="#9ca3af", font_style="italic")
+                    rx.text("El alumno no ha respondido a esta pregunta.", size="2", color=color_texto_claro, font_style="italic")
                 )
             ),
             
@@ -51,29 +52,29 @@ def render_respuesta(respuesta: RespuestaUI) -> rx.Component:
             
             rx.vstack(
                 rx.hstack(
-                    rx.text("Calificación:", size="2", color="#111827", weight="bold"),
+                    rx.text("Calificación:", size="2", color=color_texto_principal, weight="bold"),
                     rx.input(
                         type="number", 
                         min="0", max=respuesta.calificacion_maxima.to_string(), step="0.1",
                         value=respuesta.calificacion.to_string(),
                         on_change=lambda v: EvaluarTareaState.actualizar_calificacion(respuesta.id_pregunta, v),
                         width="100px",
-                        border="1px solid #d1d5db",
+                        border=f"1px solid {color_borde_input}",
                         background_color="white",
-                        color="#111827",
+                        color=color_texto_principal,
                     ),
-                    rx.text(f"/ {respuesta.calificacion_maxima}", size="2", color="#6b7280"),
+                    rx.text(f"/ {respuesta.calificacion_maxima}", size="2", color=color_texto_gris),
                     align="center", spacing="2"
                 ),
-                rx.text("Retroalimentación (opcional):", size="2", color="#111827", weight="bold"),
+                rx.text("Retroalimentación (opcional):", size="2", color=color_texto_principal, weight="bold"),
                 rx.text_area(
                     placeholder="Escribe comentarios o sugerencias sobre la respuesta...",
                     value=respuesta.retroalimentacion,
                     on_change=lambda v: EvaluarTareaState.actualizar_retroalimentacion(respuesta.id_pregunta, v),
                     width="100%",
-                    border="1px solid #d1d5db",
+                    border=f"1px solid {color_borde_input}",
                     background_color="white",
-                    color="#111827",
+                    color=color_texto_principal,
                 ),
                 spacing="2", width="100%"
             ),
@@ -85,7 +86,7 @@ def render_respuesta(respuesta: RespuestaUI) -> rx.Component:
         width="100%",
         padding="1.5em",
         background_color="white",
-        border="1px solid #e5e7eb",
+        border=f"1px solid {color_borde}",
         box_shadow="sm",
     )
 
@@ -94,9 +95,9 @@ def contenido_evaluacion() -> rx.Component:
         EvaluarTareaState.error_carga,
         rx.center(
             rx.vstack(
-                rx.icon("file-warning", size=48, color="#ef4444"),
-                rx.heading("Resolución no encontrada", size="6", color="#111827"),
-                rx.text("No se pudo cargar la entrega del alumno o no tienes permiso para verla.", color="#6b7280"),
+                rx.icon("file-warning", size=48, color=color_error),
+                rx.heading("Resolución no encontrada", size="6", color=color_texto_principal),
+                rx.text("No se pudo cargar la entrega del alumno o no tienes permiso para verla.", color=color_texto_gris),
                 rx.button(
                     "Volver a mis tareas", 
                     on_click=rx.redirect("/mis-tareas"), 
@@ -113,7 +114,7 @@ def contenido_evaluacion() -> rx.Component:
             rx.button(
                 rx.icon("arrow-left", size=16),
                 "Volver a los detalles de la tarea",
-                color="#4b5563",
+                color=color_texto_terciario,
                 on_click=rx.redirect(f"/tarea/{EvaluarTareaState.id_tarea_actual}"),
                 variant="ghost",
                 color_scheme="gray",
@@ -124,24 +125,24 @@ def contenido_evaluacion() -> rx.Component:
             rx.box(
                 rx.vstack(
                     rx.hstack(
-                        rx.icon("file-check", size=24, color="#4f46e5"),
-                        rx.heading("Resolución de Tarea", size="6", color="#111827"),
+                        rx.icon("file-check", size=24, color=color_primario),
+                        rx.heading("Resolución de Tarea", size="6", color=color_texto_principal),
                         align="center",
                         spacing="2",
                     ),
                     rx.divider(margin_y="0.5em"),
                     rx.grid(
                         rx.box(
-                            rx.text("Tarea", size="1", color="#6b7280", weight="bold"),
-                            rx.text(EvaluarTareaState.titulo_tarea, size="3", color="#111827", weight="medium"),
+                            rx.text("Tarea", size="1", color=color_texto_gris, weight="bold"),
+                            rx.text(EvaluarTareaState.titulo_tarea, size="3", color=color_texto_principal, weight="medium"),
                         ),
                         rx.box(
-                            rx.text("Estudiante", size="1", color="#6b7280", weight="bold"),
-                            rx.text(EvaluarTareaState.nombre_estudiante, size="3", color="#111827", weight="medium"),
+                            rx.text("Estudiante", size="1", color=color_texto_gris, weight="bold"),
+                            rx.text(EvaluarTareaState.nombre_estudiante, size="3", color=color_texto_principal, weight="medium"),
                         ),
                         rx.box(
-                            rx.text("Fecha de entrega", size="1", color="#6b7280", weight="bold"),
-                            rx.text(EvaluarTareaState.fecha_entrega, size="3", color="#111827", weight="medium"),
+                            rx.text("Fecha de entrega", size="1", color=color_texto_gris, weight="bold"),
+                            rx.text(EvaluarTareaState.fecha_entrega, size="3", color=color_texto_principal, weight="medium"),
                         ),
                         columns={"initial": "1", "sm": "3"},
                         spacing="4",
@@ -152,7 +153,7 @@ def contenido_evaluacion() -> rx.Component:
                 ),
                 padding="1.5em",
                 background_color="white",
-                border="1px solid #e5e7eb",
+                border=f"1px solid {color_borde}",
                 border_radius="8px",
                 width="100%",
                 margin_bottom="1.5em",
@@ -167,8 +168,8 @@ def contenido_evaluacion() -> rx.Component:
                 ),
                 rx.center(
                     rx.vstack(
-                        rx.icon("info", size=40, color="#9ca3af"),
-                        rx.text("No se encontraron respuestas para esta tarea.", color="#6b7280", size="2"),
+                        rx.icon("info", size=40, color=color_texto_claro),
+                        rx.text("No se encontraron respuestas para esta tarea.", color=color_texto_gris, size="2"),
                         align="center",
                     ),
                     width="100%",
@@ -191,7 +192,7 @@ def contenido_evaluacion() -> rx.Component:
                 padding="1.5em",
                 margin_top="2em",
                 background_color="white",
-                border="1px solid #e5e7eb",
+                border=f"1px solid {color_borde}",
                 border_radius="8px",
                 box_shadow="sm",
             ),
@@ -216,7 +217,7 @@ def evaluar_tarea_page() -> rx.Component:
             ),
             flex="1",
             height="100vh",
-            background_color="#f9fafb",
+            background_color=color_fondo_pagina,
             overflow="auto",
         ),
         width="100%",

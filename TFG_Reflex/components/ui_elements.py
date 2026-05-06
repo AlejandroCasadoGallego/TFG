@@ -1,4 +1,5 @@
 import reflex as rx
+from ..colores import *
 
 def stat_card(titulo: str, valor: str, icono: str, color_bg: str, ruta: str = None) -> rx.Component:
     tarjeta = rx.card(
@@ -12,8 +13,8 @@ def stat_card(titulo: str, valor: str, icono: str, color_bg: str, ruta: str = No
                 box_shadow="0 4px 6px -1px rgba(0, 0, 0, 0.1)"
             ),
             rx.vstack(
-                rx.text(titulo, size="2", weight="bold", color="#4b5563"),
-                rx.text(valor, size="7", weight="bold", color="#111827"),
+                rx.text(titulo, size="2", weight="bold", color=color_texto_terciario),
+                rx.text(valor, size="7", weight="bold", color=color_texto_principal),
                 spacing="1",
                 align_items="start"
             ),
@@ -23,7 +24,7 @@ def stat_card(titulo: str, valor: str, icono: str, color_bg: str, ruta: str = No
         size="3",
         width="100%",
         background_color="white",
-        border="1px solid #e5e7eb",
+        border=f"1px solid {color_borde}",
         _hover={
             "box_shadow": "lg", 
             "transform": "translateY(-2px)", 
@@ -40,14 +41,14 @@ def stat_card(titulo: str, valor: str, icono: str, color_bg: str, ruta: str = No
 def sidebar_item(texto: str, icon: str, ruta: str) -> rx.Component:
     return rx.link(
         rx.hstack(
-            rx.icon(icon, size=20, color="#4b5563"),
-            rx.text(texto, size="3", weight="medium", color="#374151"),
+            rx.icon(icon, size=20, color=color_texto_terciario),
+            rx.text(texto, size="3", weight="medium", color=color_texto_secundario),
             spacing="3",
             padding="12px 16px",
             border_radius="8px",
             _hover={
                 "background_color": "#e0e7ff",
-                "color": "#4338ca",
+                "color": color_primario_oscuro,
             },
             width="100%",
             align="center"

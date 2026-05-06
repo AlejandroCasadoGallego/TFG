@@ -1,6 +1,7 @@
 import reflex as rx
 from ..state.base_state import BaseState
 from ..components.layout import sidebar_layout, header_component
+from ..colores import *
 
 def item_notificacion(notif: rx.Var) -> rx.Component:
     return rx.box(
@@ -8,15 +9,15 @@ def item_notificacion(notif: rx.Var) -> rx.Component:
             rx.hstack(
                 rx.icon(
                     rx.cond(notif["leida"], "mail-open", "mail"),
-                    color=rx.cond(notif["leida"], "#9ca3af", "#4f46e5")
+                    color=rx.cond(notif["leida"], color_texto_claro, color_primario)
                 ),
                 rx.vstack(
-                    rx.heading(notif["titulo"], size="3", color="#111827"),
+                    rx.heading(notif["titulo"], size="3", color=color_texto_principal),
                     rx.hstack(
-                        rx.text("De: ", size="1", color="#6b7280"),
-                        rx.text(notif["remitente_nombre"], size="1", color="#4f46e5", weight="bold"),
-                        rx.text(" · ", size="1", color="#d1d5db"),
-                        rx.text(notif["fecha"], size="1", color="#6b7280"),
+                        rx.text("De: ", size="1", color=color_texto_gris),
+                        rx.text(notif["remitente_nombre"], size="1", color=color_primario, weight="bold"),
+                        rx.text(" · ", size="1", color=color_borde_input),
+                        rx.text(notif["fecha"], size="1", color=color_texto_gris),
                         spacing="1",
                         align="center",
                     ),
@@ -61,13 +62,13 @@ def item_notificacion(notif: rx.Var) -> rx.Component:
                 
                 width="100%", align="center"
             ),
-            rx.text(notif["mensaje"], size="2", color="#374151", margin_top="1em"),
+            rx.text(notif["mensaje"], size="2", color=color_texto_secundario, margin_top="1em"),
             spacing="2",
             padding="1.5em",
         ),
         width="100%",
-        background_color=rx.cond(notif["leida"], "#f9fafb", "white"),
-        border="1px solid #e5e7eb",
+        background_color=rx.cond(notif["leida"], color_fondo_pagina, "white"),
+        border=f"1px solid {color_borde}",
         border_radius="8px",
         margin_bottom="1em",
         opacity=rx.cond(notif["leida"], "0.7", "1")
@@ -79,7 +80,7 @@ def modal_respuesta() -> rx.Component:
         rx.dialog.content(
             rx.dialog.title(
                 rx.hstack(
-                    rx.icon("reply", size=20, color="#4f46e5"),
+                    rx.icon("reply", size=20, color=color_primario),
                     rx.text("Responder mensaje", weight="bold"),
                     align="center",
                     spacing="2",
@@ -88,19 +89,19 @@ def modal_respuesta() -> rx.Component:
             rx.dialog.description(
                 rx.vstack(
                     rx.hstack(
-                        rx.text("Para:", size="2", color="#6b7280", weight="bold"),
+                        rx.text("Para:", size="2", color=color_texto_gris, weight="bold"),
                         rx.badge(BaseState.respuesta_remitente_nombre, color_scheme="indigo", variant="soft"),
                         align="center",
                         spacing="2",
                     ),
                     rx.hstack(
-                        rx.text("Asunto:", size="2", color="#6b7280", weight="bold"),
-                        rx.text(f"Re: {BaseState.respuesta_titulo_original}", size="2", color="#374151"),
+                        rx.text("Asunto:", size="2", color=color_texto_gris, weight="bold"),
+                        rx.text(f"Re: {BaseState.respuesta_titulo_original}", size="2", color=color_texto_secundario),
                         align="center",
                         spacing="2",
                     ),
                     rx.divider(margin_y="0.5em"),
-                    rx.text("Tu respuesta:", size="2", color="#374151", weight="bold"),
+                    rx.text("Tu respuesta:", size="2", color=color_texto_secundario, weight="bold"),
                     rx.text_area(
                         placeholder="Escribe tu respuesta aquí...",
                         value=BaseState.respuesta_texto,
@@ -156,8 +157,8 @@ def notificaciones_page() -> rx.Component:
                     ),
                     rx.center(
                         rx.vstack(
-                            rx.icon("bell-off", size=48, color="#9ca3af"),
-                            rx.text("No tienes notificaciones pendientes.", color="#6b7280"),
+                            rx.icon("bell-off", size=48, color=color_texto_claro),
+                            rx.text("No tienes notificaciones pendientes.", color=color_texto_gris),
                             align="center", spacing="3", margin_top="5em"
                         ),
                         width="100%"
@@ -166,7 +167,7 @@ def notificaciones_page() -> rx.Component:
                 modal_respuesta(),
                 padding="3em", width="100%"
             ),
-            flex="1", height="100vh", background_color="#f9fafb", overflow="auto"
+            flex="1", height="100vh", background_color=color_fondo_pagina, overflow="auto"
         ),
         width="100%"
     )
