@@ -1,21 +1,21 @@
 PATTERNLAB (TFG REFLEX)
 =======================
 
-Plataforma educativa interactiva desarrollada como Trabajo de Fin de Grado (TFG). Permite la gestion de grupos, resolucion de tareas, biblioteca de patrones arquitectonicos, y un completo seguimiento del progreso de los estudiantes.
+Plataforma educativa interactiva desarrollada como Trabajo de Fin de Grado (TFG). Permite la gestión de grupos, resolución de tareas, biblioteca de patrones arquitectónicos, y un completo seguimiento del progreso de los estudiantes.
 
---- TECNOLOGIAS UTILIZADAS ---
+--- TECNOLOGÍAS UTILIZADAS ---
 - Framework: Reflex (Python full-stack framework)
 - Lenguaje: Python 3.10+
 - Base de Datos: desarrollo local
-- ORM: SQLModel / SQLAlchemy
+- ORM: SQLModel
 - UI: Componentes de interfaz generados mediante Reflex (Radix UI)
 
 --- REQUISITOS PREVIOS ---
-Asegurate de tener instalado en tu sistema:
+Asegúrate de tener instalado en tu sistema:
 - Python 3.10 o superior
 - pip (gestor de paquetes de Python)
 
---- INSTALACION Y CONFIGURACION LOCAL ---
+--- INSTALACIÓN Y CONFIGURACIÓN LOCAL ---
 Sigue estos pasos para desplegar el proyecto en tu entorno local:
 
 1. Clonar el repositorio
@@ -40,30 +40,28 @@ Sigue estos pasos para desplegar el proyecto en tu entorno local:
    reflex db makemigrations
    reflex db migrate
 
---- EJECUCION DEL SERVIDOR DE DESARROLLO ---
-Para iniciar la aplicacion en modo desarrollo (con recarga automatica):
+--- EJECUCIÓN DEL SERVIDOR DE DESARROLLO ---
+Para iniciar la aplicación en modo desarrollo (con recarga automática):
    reflex run
 
-La aplicacion estara disponible en tu navegador en: http://localhost:3000
+La aplicación estará disponible en tu navegador en: http://localhost:3000
 
 --- ESTRUCTURA DEL PROYECTO ---
-- TFG_Reflex/ : Directorio principal del codigo fuente.
+- TFG_Reflex/ : Directorio principal del código fuente.
   - components/ : Componentes de interfaz reutilizables (layout, barra lateral, tarjetas).
   - models/ : Esquemas de base de datos SQLModel (Usuarios, Tareas, Grupos).
-  - pages/ : Vistas y rutas de la aplicacion (Dashboard, Tareas, Evaluaciones).
-  - state/ : Logica de negocio y gestion de estados de Reflex.
-  - colores.py : Paleta de colores centralizada del sistema de diseno.
-- assets/ : Archivos estaticos e imagenes.
-- rxconfig.py : Configuracion global de la aplicacion Reflex y URL de la base de datos.
-- alembic/ : Historial y configuracion de migraciones de base de datos.
+  - pages/ : Vistas y rutas de la aplicación (Dashboard, Tareas, Evaluaciones).
+  - state/ : Lógica de negocio y gestión de estados de Reflex.
+  - colores.py : Paleta de colores centralizada del sistema de diseño.
+- assets/ : Archivos estáticos e imágenes.
+- rxconfig.py : Configuración global de la aplicación Reflex y URL de la base de datos.
+- alembic/ : Historial y configuración de migraciones de base de datos.
 
---- CONFIGURACION DE BASE DE DATOS (PRODUCCION) ---
-Por defecto, el proyecto usa una base de datos local. Para entornos de produccion o Reflex Cloud, debes modificar la variable database_url en rxconfig.py para apuntar a un servicio MySQL externo:
-
-import reflex as rx
+--- CONFIGURACIÓN DE BASE DE DATOS (PRODUCCIÓN) ---
+Por defecto, el proyecto usa una base de datos local. Para entornos de producción o Reflex Cloud, debes modificar la variable database_url en rxconfig.py para apuntar a un servicio MySQL externo.
 
 --- ROLES DE USUARIO ---
 El sistema soporta 3 tipos de acceso:
-1. Estudiante: Acceso a grupos, resolucion de tareas, resumen academico y notificaciones.
-2. Docente: Creacion y correccion de tareas, gestion de grupos, y liberacion manual de calificaciones.
-3. Administrador: Gestion del sistema, control de usuarios (alta/baja de docentes y estudiantes), y reseteo de contrasenas.
+1. Estudiante: Acceso a grupos, resolución de tareas, resumen académico y notificaciones.
+2. Docente: Creación y corrección de tareas, gestión de grupos, y liberación manual de calificaciones.
+3. Administrador: Gestión del sistema, control de usuarios (alta/baja de docentes y estudiantes), y reseteo de contraseñas.
