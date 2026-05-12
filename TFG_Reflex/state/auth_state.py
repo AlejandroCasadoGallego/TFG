@@ -1,6 +1,7 @@
 import reflex as rx
 import sqlmodel
 import re
+import time
 from .base_state import BaseState
 from ..models.usuarios import Usuario, Estudiante
 
@@ -12,6 +13,12 @@ class AuthState(BaseState):
     pass_forzado_1: str = ""
     pass_forzado_2: str = ""
     error_pass_forzado: str = ""
+
+    _intentos_fallidos: int = 0
+    _ultimo_intento: float = 0.0
+    _MAX_INTENTOS: int = 5
+    _COOLDOWN_SEGUNDOS: int = 60
+    bloqueado_hasta: str = ""
 
     def _validar_password(self, password: str) -> str:
         if len(password) < 8:
@@ -39,12 +46,27 @@ class AuthState(BaseState):
             return self.guardar_pass_forzado()
 
     def iniciar_sesion(self, form_data: dict = None):
+        ahora = time.time()
+
+        if self._intentos_fallidos >= self._MAX_INTENTOS:
+            tiempo_restante = self._COOLDOWN_SEGUNDOS - (ahora - self._ultimo_intento)
+            if tiempo_restante > 0:
+                segundos = int(tiempo_restante)
+                self.bloqueado_hasta = f"Demasiados intentos. Espera {segundos}s."
+                self.error_mensaje = self.bloqueado_hasta
+                return
+            else:
+                self._intentos_fallidos = 0
+                self.bloqueado_hasta = ""
+
         with rx.session() as session:
             usuario = session.exec(
                 sqlmodel.select(Usuario).where(Usuario.correo == self.correo_input)
             ).first()
 
             if usuario and usuario.activo and usuario.contraseñaHash == self._hash_password(self.pass_input):
+                self._intentos_fallidos = 0
+                self.bloqueado_hasta = ""
                 self.usuario_actual = usuario.nombreUsuario
                 self.usuario_rol = usuario.rol
                 self.error_mensaje = ""
@@ -54,7 +76,14 @@ class AuthState(BaseState):
             elif usuario and not usuario.activo:
                 self.error_mensaje = "Esta cuenta ha sido desactivada."
             else:
-                self.error_mensaje = "Credenciales incorrectas."
+                self._intentos_fallidos += 1
+                self._ultimo_intento = ahora
+                intentos_restantes = self._MAX_INTENTOS - self._intentos_fallidos
+                if intentos_restantes > 0:
+                    self.error_mensaje = f"Credenciales incorrectas. Te quedan {intentos_restantes} intentos."
+                else:
+                    self.bloqueado_hasta = f"Demasiados intentos. Espera {self._COOLDOWN_SEGUNDOS}s."
+                    self.error_mensaje = self.bloqueado_hasta
 
     def registrar_usuario(self, form_data: dict = None):
         with rx.session() as session:
