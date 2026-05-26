@@ -112,67 +112,71 @@ class MisTareasState(BaseState):
         if self.tarea_a_eliminar_id < 0:
             return rx.toast.error("No se ha seleccionado ninguna tarea.", position="bottom-right")
 
-        with rx.session() as session:
-            from ..models.usuarios import Usuario
-            from ..models.tarea import Tarea, Pregunta, EstudianteTarea, Ejercicio, PruebaEvaluacion
-            from ..models.evaluacion import ResolucionTarea, RespuestaPregunta
+        try:
+            with rx.session() as session:
+                from ..models.usuarios import Usuario
+                from ..models.tarea import Tarea, Pregunta, EstudianteTarea, Ejercicio, PruebaEvaluacion
+                from ..models.evaluacion import ResolucionTarea, RespuestaPregunta
 
-            profesor = session.exec(
-                sqlmodel.select(Usuario).where(Usuario.nombreUsuario == self.usuario_actual)
-            ).first()
-            if not profesor:
-                return rx.toast.error("No se ha podido identificar al docente.", position="bottom-right")
+                profesor = session.exec(
+                    sqlmodel.select(Usuario).where(Usuario.nombreUsuario == self.usuario_actual)
+                ).first()
+                if not profesor:
+                    return rx.toast.error("No se ha podido identificar al docente.", position="bottom-right")
 
-            tarea = session.exec(
-                sqlmodel.select(Tarea).where(
-                    (Tarea.id_tarea == self.tarea_a_eliminar_id) &
-                    (Tarea.docente_id == profesor.id_usuario)
-                )
-            ).first()
-            if not tarea:
-                self.cambiar_estado_modal_eliminar(False)
-                self.cargar_tareas()
-                return rx.toast.error("La tarea no existe o no tienes permiso para eliminarla.", position="bottom-right")
+                tarea = session.exec(
+                    sqlmodel.select(Tarea).where(
+                        (Tarea.id_tarea == self.tarea_a_eliminar_id) &
+                        (Tarea.docente_id == profesor.id_usuario)
+                    )
+                ).first()
+                if not tarea:
+                    self.cambiar_estado_modal_eliminar(False)
+                    self.cargar_tareas()
+                    return rx.toast.error("La tarea no existe o no tienes permiso para eliminarla.", position="bottom-right")
 
-            preguntas = session.exec(
-                sqlmodel.select(Pregunta).where(Pregunta.tarea_id == tarea.id_tarea)
-            ).all()
-            for pregunta in preguntas:
-                respuestas = session.exec(
-                    sqlmodel.select(RespuestaPregunta).where(RespuestaPregunta.pregunta_id == pregunta.id)
+                preguntas = session.exec(
+                    sqlmodel.select(Pregunta).where(Pregunta.tarea_id == tarea.id_tarea)
                 ).all()
-                for respuesta in respuestas:
-                    session.delete(respuesta)
+                for pregunta in preguntas:
+                    respuestas = session.exec(
+                        sqlmodel.select(RespuestaPregunta).where(RespuestaPregunta.pregunta_id == pregunta.id)
+                    ).all()
+                    for respuesta in respuestas:
+                        session.delete(respuesta)
 
-            resoluciones = session.exec(
-                sqlmodel.select(ResolucionTarea).where(ResolucionTarea.tarea_id == tarea.id_tarea)
-            ).all()
-            for resolucion in resoluciones:
-                session.delete(resolucion)
+                resoluciones = session.exec(
+                    sqlmodel.select(ResolucionTarea).where(ResolucionTarea.tarea_id == tarea.id_tarea)
+                ).all()
+                for resolucion in resoluciones:
+                    session.delete(resolucion)
 
-            asignaciones = session.exec(
-                sqlmodel.select(EstudianteTarea).where(EstudianteTarea.id_tarea == tarea.id_tarea)
-            ).all()
-            for asignacion in asignaciones:
-                session.delete(asignacion)
+                asignaciones = session.exec(
+                    sqlmodel.select(EstudianteTarea).where(EstudianteTarea.id_tarea == tarea.id_tarea)
+                ).all()
+                for asignacion in asignaciones:
+                    session.delete(asignacion)
 
-            ejercicio = session.exec(
-                sqlmodel.select(Ejercicio).where(Ejercicio.tarea_id == tarea.id_tarea)
-            ).first()
-            if ejercicio:
-                session.delete(ejercicio)
+                ejercicio = session.exec(
+                    sqlmodel.select(Ejercicio).where(Ejercicio.tarea_id == tarea.id_tarea)
+                ).first()
+                if ejercicio:
+                    session.delete(ejercicio)
 
-            prueba = session.exec(
-                sqlmodel.select(PruebaEvaluacion).where(PruebaEvaluacion.tarea_id == tarea.id_tarea)
-            ).first()
-            if prueba:
-                session.delete(prueba)
+                prueba = session.exec(
+                    sqlmodel.select(PruebaEvaluacion).where(PruebaEvaluacion.tarea_id == tarea.id_tarea)
+                ).first()
+                if prueba:
+                    session.delete(prueba)
 
-            for pregunta in preguntas:
-                session.delete(pregunta)
+                for pregunta in preguntas:
+                    session.delete(pregunta)
 
-            session.delete(tarea)
-            session.commit()
+                session.delete(tarea)
+                session.commit()
+        except Exception as e:
+            self.cambiar_estado_modal_eliminar(False)
+            return rx.toast.error(f"Error de base de datos al eliminar la tarea: {str(e)}", position="bottom-right")
 
         self.cambiar_estado_modal_eliminar(False)
         self.cargar_tareas()

@@ -49,73 +49,77 @@ class EvaluarTareaState(BaseState):
             self.error_carga = True
             return
             
-        with rx.session() as session:
-            from ..models.tarea import Tarea, Pregunta
-            from ..models.usuarios import Usuario
-            from ..models.evaluacion import ResolucionTarea, RespuestaPregunta
-            
-            tarea = session.exec(sqlmodel.select(Tarea).where(Tarea.id_tarea == id_tarea_int)).first()
-            estudiante = session.exec(sqlmodel.select(Usuario).where(Usuario.id_usuario == id_estudiante_int)).first()
-            
-            if not tarea or not estudiante:
-                self.error_carga = True
-                return
+        try:
+            with rx.session() as session:
+                from ..models.tarea import Tarea, Pregunta
+                from ..models.usuarios import Usuario
+                from ..models.evaluacion import ResolucionTarea, RespuestaPregunta
                 
-            self.titulo_tarea = tarea.titulo
-            self.nombre_estudiante = estudiante.nombreUsuario
-            
-            resolucion = session.exec(
-                sqlmodel.select(ResolucionTarea)
-                .where((ResolucionTarea.tarea_id == id_tarea_int) & (ResolucionTarea.estudiante_id == id_estudiante_int))
-            ).first()
-            
-            if not resolucion:
-                self.error_carga = True
-                return
+                tarea = session.exec(sqlmodel.select(Tarea).where(Tarea.id_tarea == id_tarea_int)).first()
+                estudiante = session.exec(sqlmodel.select(Usuario).where(Usuario.id_usuario == id_estudiante_int)).first()
                 
-            self.fecha_entrega = resolucion.fechaEntrega.strftime("%d/%m/%Y %H:%M")
-            
-            
-            respuestas_bd = session.exec(
-                sqlmodel.select(RespuestaPregunta)
-                .where(RespuestaPregunta.resolucion_id == resolucion.id)
-            ).all()
-            
-            preguntas = session.exec(
-                sqlmodel.select(Pregunta)
-                .where(Pregunta.tarea_id == id_tarea_int)
-                .order_by(Pregunta.id)
-            ).all()
-            
-            lista_respuestas = []
-            for i, pregunta in enumerate(preguntas):
+                if not tarea or not estudiante:
+                    self.error_carga = True
+                    return
+                    
+                self.titulo_tarea = tarea.titulo
+                self.nombre_estudiante = estudiante.nombreUsuario
                 
-                respuesta_alumno = next((r for r in respuestas_bd if r.pregunta_id == pregunta.id), None)
+                resolucion = session.exec(
+                    sqlmodel.select(ResolucionTarea)
+                    .where((ResolucionTarea.tarea_id == id_tarea_int) & (ResolucionTarea.estudiante_id == id_estudiante_int))
+                ).first()
                 
-                respuesta_texto = respuesta_alumno.respuesta if respuesta_alumno else ""
-                if pregunta.tipo == "Test" and respuesta_texto.isdigit():
-                    idx = int(respuesta_texto) - 1
-                    opciones = [opcion for opcion in (pregunta.opciones or []) if opcion]
-                    if 0 <= idx < len(opciones):
-                        respuesta_texto = opciones[idx]
+                if not resolucion:
+                    self.error_carga = True
+                    return
+                    
+                self.fecha_entrega = resolucion.fechaEntrega.strftime("%d/%m/%Y %H:%M")
+                
+                
+                respuestas_bd = session.exec(
+                    sqlmodel.select(RespuestaPregunta)
+                    .where(RespuestaPregunta.resolucion_id == resolucion.id)
+                ).all()
+                
+                preguntas = session.exec(
+                    sqlmodel.select(Pregunta)
+                    .where(Pregunta.tarea_id == id_tarea_int)
+                    .order_by(Pregunta.id)
+                ).all()
+                
+                lista_respuestas = []
+                for i, pregunta in enumerate(preguntas):
+                    
+                    respuesta_alumno = next((r for r in respuestas_bd if r.pregunta_id == pregunta.id), None)
+                    
+                    respuesta_texto = respuesta_alumno.respuesta if respuesta_alumno else ""
+                    if pregunta.tipo == "Test" and respuesta_texto.isdigit():
+                        idx = int(respuesta_texto) - 1
+                        opciones = [opcion for opcion in (pregunta.opciones or []) if opcion]
+                        if 0 <= idx < len(opciones):
+                            respuesta_texto = opciones[idx]
 
-                resp_diagrama = respuesta_alumno.respuesta_diagrama if respuesta_alumno and respuesta_alumno.respuesta_diagrama else ""
+                    resp_diagrama = respuesta_alumno.respuesta_diagrama if respuesta_alumno and respuesta_alumno.respuesta_diagrama else ""
 
-                lista_respuestas.append(
-                    RespuestaUI(
-                        id_pregunta=str(pregunta.id),
-                        numero=str(i + 1),
-                        enunciado=pregunta.enunciado or "Sin enunciado",
-                        tipo=pregunta.tipo,
-                        respuesta_texto=respuesta_texto,
-                        respuesta_diagrama=resp_diagrama,
-                        calificacion=float(respuesta_alumno.calificacion) if respuesta_alumno else 0.0,
-                        calificacion_maxima=float(pregunta.calificacion_maxima) if hasattr(pregunta, 'calificacion_maxima') else 10.0,
-                        retroalimentacion=respuesta_alumno.retroalimentacion if respuesta_alumno and respuesta_alumno.retroalimentacion else ""
+                    lista_respuestas.append(
+                        RespuestaUI(
+                            id_pregunta=str(pregunta.id),
+                            numero=str(i + 1),
+                            enunciado=pregunta.enunciado or "Sin enunciado",
+                            tipo=pregunta.tipo,
+                            respuesta_texto=respuesta_texto,
+                            respuesta_diagrama=resp_diagrama,
+                            calificacion=float(respuesta_alumno.calificacion) if respuesta_alumno else 0.0,
+                            calificacion_maxima=float(pregunta.calificacion_maxima) if hasattr(pregunta, 'calificacion_maxima') else 10.0,
+                            retroalimentacion=respuesta_alumno.retroalimentacion if respuesta_alumno and respuesta_alumno.retroalimentacion else ""
+                        )
                     )
-                )
-                
-            self.respuestas = lista_respuestas
+                    
+                self.respuestas = lista_respuestas
+        except Exception as e:
+            self.error_carga = True
+            return rx.toast.error(f"Error al consultar las resoluciones del estudiante: {str(e)}", position="bottom-right")
 
     def actualizar_calificacion(self, id_pregunta: str, valor: str):
         temp_respuestas = self.respuestas.copy()

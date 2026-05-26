@@ -101,98 +101,104 @@ class PatternDetailState(BaseState):
         if not id_url:
             return
 
-        with rx.session() as session:
-            patron = session.exec(sqlmodel.select(PatronDiseño).where(PatronDiseño.id_patron == int(id_url))).first()
-            if patron:
-                patron.activo = not patron.activo
-                session.add(patron)
-                session.commit()
-                self.cargar_patron()
+        try:
+            with rx.session() as session:
+                patron = session.exec(sqlmodel.select(PatronDiseño).where(PatronDiseño.id_patron == int(id_url))).first()
+                if patron:
+                    patron.activo = not patron.activo
+                    session.add(patron)
+                    session.commit()
+                    self.cargar_patron()
+        except Exception as e:
+            return rx.toast.error(f"Error de base de datos al cambiar el estado del patrón: {str(e)}", position="bottom-right")
 
     async def descargar_pdf(self):
         if not self.patron_actual:
             return
 
-        def limpiar_texto(texto: str) -> str:
-            if not texto:
-                return ""
-            reemplazos = {
-                "\u2026": "...",
-                "\u201c": '"',
-                "\u201d": '"',
-                "\u2018": "'",
-                "\u2019": "'",
-                "\u2013": "-",
-                "\u2014": "-",
-                "\r": "",
-                "\n": " " 
-            }
-            for original, seguro in reemplazos.items():
-                texto = texto.replace(original, seguro)
-                
-            return texto.encode('latin-1', errors='ignore').decode('latin-1')
+        try:
+            def limpiar_texto(texto: str) -> str:
+                if not texto:
+                    return ""
+                reemplazos = {
+                    "\u2026": "...",
+                    "\u201c": '"',
+                    "\u201d": '"',
+                    "\u2018": "'",
+                    "\u2019": "'",
+                    "\u2013": "-",
+                    "\u2014": "-",
+                    "\r": "",
+                    "\n": " " 
+                }
+                for original, seguro in reemplazos.items():
+                    texto = texto.replace(original, seguro)
+                    
+                return texto.encode('latin-1', errors='ignore').decode('latin-1')
 
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_auto_page_break(auto=True, margin=15)
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_auto_page_break(auto=True, margin=15)
 
-        pdf.set_font("helvetica", style="B", size=24)
-        pdf.set_text_color(17, 24, 39)
-        pdf.cell(0, 10, limpiar_texto(self.patron_actual["nombre"]), new_x="LMARGIN", new_y="NEXT", align="C")
-        
-        pdf.set_font("helvetica", style="I", size=14)
-        pdf.set_text_color(107, 114, 128)
-        pdf.cell(0, 10, limpiar_texto(f"Categoría: {self.patron_actual['categoria']}"), new_x="LMARGIN", new_y="NEXT", align="C")
-        pdf.ln(10)
+            pdf.set_font("helvetica", style="B", size=24)
+            pdf.set_text_color(17, 24, 39)
+            pdf.cell(0, 10, limpiar_texto(self.patron_actual["nombre"]), new_x="LMARGIN", new_y="NEXT", align="C")
+            
+            pdf.set_font("helvetica", style="I", size=14)
+            pdf.set_text_color(107, 114, 128)
+            pdf.cell(0, 10, limpiar_texto(f"Categoría: {self.patron_actual['categoria']}"), new_x="LMARGIN", new_y="NEXT", align="C")
+            pdf.ln(10)
 
-        img_data = self.patron_actual["diagrama"]
-        if img_data and img_data.startswith("data:image"):
-            try:
-                header, encoded = img_data.split(",", 1)
-                img_bytes = base64.b64decode(encoded)
-                
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
-                    tmp_file.write(img_bytes)
-                    tmp_path = tmp_file.name
-                
-                pdf.image(tmp_path, x="CENTER", w=120)
-                pdf.ln(5)
-                
-                os.remove(tmp_path)
-            except Exception as e:
-                print(f"Error procesando imagen para PDF: {e}")
-        
-        def imprimir_seccion(titulo, contenido):
-            if contenido:
+            img_data = self.patron_actual["diagrama"]
+            if img_data and img_data.startswith("data:image"):
+                try:
+                    header, encoded = img_data.split(",", 1)
+                    img_bytes = base64.b64decode(encoded)
+                    
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
+                        tmp_file.write(img_bytes)
+                        tmp_path = tmp_file.name
+                    
+                    pdf.image(tmp_path, x="CENTER", w=120)
+                    pdf.ln(5)
+                    
+                    os.remove(tmp_path)
+                except Exception as e:
+                    print(f"Error procesando imagen para PDF: {e}")
+            
+            def imprimir_seccion(titulo, contenido):
+                if contenido:
+                    pdf.set_font("helvetica", style="B", size=16)
+                    pdf.set_text_color(17, 24, 39)
+                    pdf.cell(0, 10, titulo, new_x="LMARGIN", new_y="NEXT")
+                    
+                    pdf.set_font("helvetica", size=12)
+                    pdf.set_text_color(55, 65, 81)
+                    pdf.multi_cell(0, 8, text=limpiar_texto(contenido))
+                    pdf.ln(5)
+
+            imprimir_seccion("Descripción", self.patron_actual["descripcion"])
+            imprimir_seccion("Ventajas", self.patron_actual["ventajas"])
+            imprimir_seccion("Desventajas", self.patron_actual["desventajas"])
+            imprimir_seccion("Ejemplos de Uso", self.patron_actual["ejemplos"])
+            
+            if self.patron_actual["pseudocodigo"]:
                 pdf.set_font("helvetica", style="B", size=16)
                 pdf.set_text_color(17, 24, 39)
-                pdf.cell(0, 10, titulo, new_x="LMARGIN", new_y="NEXT")
+                pdf.cell(0, 10, "Pseudocódigo", new_x="LMARGIN", new_y="NEXT")
                 
-                pdf.set_font("helvetica", size=12)
-                pdf.set_text_color(55, 65, 81)
-                pdf.multi_cell(0, 8, txt=limpiar_texto(contenido))
-                pdf.ln(5)
+                pdf.set_font("courier", size=10)
+                pdf.set_text_color(0, 0, 0)
+                pdf.set_fill_color(243, 244, 246)
+                pdf.multi_cell(0, 6, text=limpiar_texto(self.patron_actual["pseudocodigo"]), fill=True)
 
-        imprimir_seccion("Descripción", self.patron_actual["descripcion"])
-        imprimir_seccion("Ventajas", self.patron_actual["ventajas"])
-        imprimir_seccion("Desventajas", self.patron_actual["desventajas"])
-        imprimir_seccion("Ejemplos de Uso", self.patron_actual["ejemplos"])
-        
-        if self.patron_actual["pseudocodigo"]:
-            pdf.set_font("helvetica", style="B", size=16)
-            pdf.set_text_color(17, 24, 39)
-            pdf.cell(0, 10, "Pseudocódigo", new_x="LMARGIN", new_y="NEXT")
+            pdf_bytes = bytes(pdf.output()) 
             
-            pdf.set_font("courier", size=10)
-            pdf.set_text_color(0, 0, 0)
-            pdf.set_fill_color(243, 244, 246)
-            pdf.multi_cell(0, 6, txt=limpiar_texto(self.patron_actual["pseudocodigo"]), fill=True)
-
-        pdf_bytes = bytes(pdf.output()) 
-        
-        nombre_archivo = f"Detalle_{self.patron_actual['nombre'].replace(' ', '_')}.pdf"
-        
-        return rx.download(data=pdf_bytes, filename=nombre_archivo)
+            nombre_archivo = f"Detalle_{self.patron_actual['nombre'].replace(' ', '_')}.pdf"
+            
+            return rx.download(data=pdf_bytes, filename=nombre_archivo)
+        except Exception as e:
+            return rx.toast.error(f"Error al exportar el patrón a PDF: {str(e)}", position="bottom-right")
 
     async def descargar_imagen(self):
         if not self.patron_actual:

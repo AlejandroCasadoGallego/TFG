@@ -59,12 +59,15 @@ class PatternsState(BaseState):
         if self.usuario_rol not in ["admin", "docente"]:
             return
             
-        with rx.session() as session:
-            patron = session.exec(sqlmodel.select(PatronDiseño).where(PatronDiseño.id_patron == int(id_patron))).first()
-            if patron:
-                patron.activo = not patron.activo
-                session.add(patron)
-                session.commit()
+        try:
+            with rx.session() as session:
+                patron = session.exec(sqlmodel.select(PatronDiseño).where(PatronDiseño.id_patron == int(id_patron))).first()
+                if patron:
+                    patron.activo = not patron.activo
+                    session.add(patron)
+                    session.commit()
+        except Exception as e:
+            return rx.toast.error(f"Error de base de datos al eliminar/desactivar el patrón: {str(e)}", position="bottom-right")
                 
         self.cargar_patrones()
     
