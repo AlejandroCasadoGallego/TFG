@@ -6,9 +6,10 @@ Plataforma educativa interactiva desarrollada como Trabajo de Fin de Grado (TFG)
 --- TECNOLOGÍAS UTILIZADAS ---
 - Framework: Reflex (Python full-stack framework)
 - Lenguaje: Python 3.10+
-- Base de Datos: desarrollo local
+- Base de Datos: SQLite (desarrollo local)
 - ORM: SQLModel
 - UI: Componentes de interfaz generados mediante Reflex (Radix UI)
+- Pizarra de diagramas: Excalidraw (MIT License)
 
 --- REQUISITOS PREVIOS ---
 Asegúrate de tener instalado en tu sistema:
@@ -48,7 +49,7 @@ La aplicación estará disponible en tu navegador en: http://localhost:3000
 
 --- ESTRUCTURA DEL PROYECTO ---
 - TFG_Reflex/ : Directorio principal del código fuente.
-  - components/ : Componentes de interfaz reutilizables (layout, barra lateral, tarjetas).
+  - components/ : Componentes de interfaz reutilizables (layout, barra lateral, tarjetas, pizarra de diagramas).
   - models/ : Esquemas de base de datos SQLModel (Usuarios, Tareas, Grupos).
   - pages/ : Vistas y rutas de la aplicación (Dashboard, Tareas, Evaluaciones).
   - state/ : Lógica de negocio y gestión de estados de Reflex.
