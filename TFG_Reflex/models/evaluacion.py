@@ -3,23 +3,26 @@ import sqlmodel
 from typing import Optional, List, TYPE_CHECKING
 from datetime import datetime
 from sqlalchemy.dialects.mysql import LONGTEXT
+from sqlalchemy import UniqueConstraint
 
 if TYPE_CHECKING:
     from .usuarios import Estudiante
     from .tarea import Pregunta, Tarea
 
 class ResolucionTarea(rx.Model, table=True):
+    __table_args__ = (UniqueConstraint("estudiante_id", "tarea_id", name="uq_resolucion_estudiante_tarea"),)
+
     fechaEntrega: datetime
     calificacionTotal: float = sqlmodel.Field(default=0.0)
-    estado: str 
+    estado: str
     calificacion_liberada: bool = sqlmodel.Field(default=False)
-    
+
     estudiante_id: int = sqlmodel.Field(foreign_key="estudiante.usuario_id")
     tarea_id: int = sqlmodel.Field(foreign_key="tarea.id_tarea")
-    
+
     estudiante: Optional["Estudiante"] = sqlmodel.Relationship(back_populates="resoluciones")
     tarea: Optional["Tarea"] = sqlmodel.Relationship(back_populates="resoluciones")
-    
+
     respuestas: List["RespuestaPregunta"] = sqlmodel.Relationship(back_populates="resolucion")
 
 class RespuestaPregunta(rx.Model, table=True):
@@ -27,9 +30,9 @@ class RespuestaPregunta(rx.Model, table=True):
     respuesta_diagrama: Optional[str] = sqlmodel.Field(default=None, sa_type=LONGTEXT)
     calificacion: float = sqlmodel.Field(default=0.0)
     retroalimentacion: Optional[str] = sqlmodel.Field(default=None, sa_type=sqlmodel.Text)
-    
+
     resolucion_id: int = sqlmodel.Field(foreign_key="resoluciontarea.id")
     pregunta_id: int = sqlmodel.Field(foreign_key="pregunta.id")
-    
+
     resolucion: Optional["ResolucionTarea"] = sqlmodel.Relationship(back_populates="respuestas")
     pregunta: Optional["Pregunta"] = sqlmodel.Relationship(back_populates="respuestas_alumnos")

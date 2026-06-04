@@ -1,8 +1,28 @@
 import reflex as rx
 import sqlmodel
+import json
 from typing import List
 from .base_state import BaseState
 
+
+def extraer_svg_diagrama(valor: str) -> str:
+    if not valor:
+        return ""
+
+    texto = valor.strip()
+    if texto.startswith("<svg") or texto.startswith("<?xml"):
+        return valor
+
+    try:
+        datos = json.loads(texto)
+        if isinstance(datos, dict):
+            svg = datos.get("svg", "")
+            if isinstance(svg, str) and svg.strip():
+                return svg
+    except Exception:
+        pass
+
+    return valor
 class RespuestaUI(rx.Base):
     id_pregunta: str
     numero: str
@@ -100,7 +120,7 @@ class EvaluarTareaState(BaseState):
                         if 0 <= idx < len(opciones):
                             respuesta_texto = opciones[idx]
 
-                    resp_diagrama = respuesta_alumno.respuesta_diagrama if respuesta_alumno and respuesta_alumno.respuesta_diagrama else ""
+                    resp_diagrama = extraer_svg_diagrama(respuesta_alumno.respuesta_diagrama) if respuesta_alumno and respuesta_alumno.respuesta_diagrama else ""
 
                     lista_respuestas.append(
                         RespuestaUI(
@@ -194,3 +214,4 @@ class EvaluarTareaState(BaseState):
             rx.toast.success("Calificación guardada. Recuerda liberarla desde el detalle de la tarea.", position="bottom-right"),
             rx.redirect(f"/tarea/{self.id_tarea_actual}")
         ]
+

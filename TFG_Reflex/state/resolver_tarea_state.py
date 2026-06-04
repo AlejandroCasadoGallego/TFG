@@ -25,26 +25,36 @@ class TareaResolucionUI(rx.Base):
 
 class ResolverTareaState(BaseState):
     tarea_id: int = -1
+    resolucion_id_actual: int = -1
+    estudiante_id_actual: int = -1
     tarea_actual: TareaResolucionUI = TareaResolucionUI()
     es_prueba: bool = False
     preguntas: List[PreguntaResolucionUI] = []
 
-    
-    
     tiempo_restante_segundos: int = 0
     timer_running: bool = False
-    
     error_carga: str = ""
 
-    def cargar_tarea(self):
+    def _limpiar_carga_actual(self):
+        self.tarea_id = -1
+        self.resolucion_id_actual = -1
+        self.estudiante_id_actual = -1
+        self.tarea_actual = TareaResolucionUI()
+        self.preguntas = []
+        self.es_prueba = False
+        self.timer_running = False
+        self.tiempo_restante_segundos = 0
         self.error_carga = ""
+
+    def cargar_tarea(self):
+        self._limpiar_carga_actual()
         id_str = self.router.page.params.get("id_tarea", "")
         if not id_str:
             self.error_carga = "ID de tarea no proporcionado."
             return
-            
+
         try:
-            self.tarea_id = int(id_str)
+            id_tarea_actual = int(id_str)
         except ValueError:
             self.error_carga = "ID de tarea inválido."
             return
@@ -58,121 +68,101 @@ class ResolverTareaState(BaseState):
                 self.error_carga = "Error de sesión."
                 return
 
-            tarea_db = session.exec(sqlmodel.select(Tarea).where(Tarea.id_tarea == self.tarea_id)).first()
+            tarea_db = session.exec(sqlmodel.select(Tarea).where(Tarea.id_tarea == id_tarea_actual)).first()
             if not tarea_db:
                 self.error_carga = "La tarea no existe."
                 return
-                
-            self.tarea_actual = TareaResolucionUI(
-                id_tarea=tarea_db.id_tarea or -1,
-                titulo=tarea_db.titulo or "",
-                descripcion=tarea_db.descripcion or "",
-                enunciado=tarea_db.enunciado or ""
-            )
 
-            
             asignacion = session.exec(
                 sqlmodel.select(EstudianteTarea).where(
-                    (EstudianteTarea.id_tarea == self.tarea_id) &
+                    (EstudianteTarea.id_tarea == id_tarea_actual) &
                     (EstudianteTarea.id_estudiante == usuario.id_usuario)
                 )
             ).first()
-            
             if not asignacion:
                 self.error_carga = "No tienes permiso para ver esta tarea."
                 return
 
-            
+            self.tarea_id = id_tarea_actual
+            self.estudiante_id_actual = usuario.id_usuario
+            self.tarea_actual = TareaResolucionUI(
+                id_tarea=tarea_db.id_tarea or -1,
+                titulo=tarea_db.titulo or "",
+                descripcion=tarea_db.descripcion or "",
+                enunciado=tarea_db.enunciado or "",
+            )
+
             preguntas_db = session.exec(
-                sqlmodel.select(Pregunta).where(Pregunta.tarea_id == self.tarea_id).order_by(Pregunta.id)
+                sqlmodel.select(Pregunta).where(Pregunta.tarea_id == id_tarea_actual).order_by(Pregunta.id)
             ).all()
-            
             self.preguntas = [
                 PreguntaResolucionUI(
                     id=str(p.id),
                     enunciado=p.enunciado or "",
                     tipo=p.tipo or "",
-                    opciones=p.opciones or []
+                    opciones=p.opciones or [],
+                    respuesta_actual="",
                 ) for p in preguntas_db
             ]
 
-            
             resolucion = session.exec(
                 sqlmodel.select(ResolucionTarea).where(
-                    (ResolucionTarea.tarea_id == self.tarea_id) &
+                    (ResolucionTarea.tarea_id == id_tarea_actual) &
                     (ResolucionTarea.estudiante_id == usuario.id_usuario)
-                )
+                ).order_by(ResolucionTarea.id.desc())
             ).first()
 
             if resolucion and resolucion.estado == "Entregado":
-                ejercicio = session.exec(sqlmodel.select(Ejercicio).where(Ejercicio.tarea_id == self.tarea_id)).first()
-                permite_reintentos = False
-                if ejercicio:
-                    permite_reintentos = ejercicio.permiteReintentos
-                    
+                ejercicio = session.exec(sqlmodel.select(Ejercicio).where(Ejercicio.tarea_id == id_tarea_actual)).first()
+                permite_reintentos = ejercicio.permiteReintentos if ejercicio else False
                 if not permite_reintentos:
                     self.error_carga = "Ya has entregado esta tarea. No puedes volver a realizarla."
                     return
 
             if not resolucion:
-                
                 resolucion = ResolucionTarea(
                     fechaEntrega=datetime.now(),
                     estado="En progreso",
                     estudiante_id=usuario.id_usuario,
-                    tarea_id=self.tarea_id
+                    tarea_id=id_tarea_actual,
                 )
                 session.add(resolucion)
                 session.commit()
                 session.refresh(resolucion)
-                
-                
-                prueba = session.exec(sqlmodel.select(PruebaEvaluacion).where(PruebaEvaluacion.tarea_id == self.tarea_id)).first()
-                if prueba:
-                    self.es_prueba = True
-                    tiempo_limite_seg = prueba.tiempoLimite * 60
-                    tiempo_hasta_fin = (tarea_db.fechaFin - datetime.now()).total_seconds()
-                    self.tiempo_restante_segundos = int(min(tiempo_limite_seg, max(0, tiempo_hasta_fin)))
-                    self.timer_running = True
-                    return ResolverTareaState.tick_timer
-                else:
-                    self.es_prueba = False
-                    self.timer_running = False
-            else:
-                
-                respuestas_bd = session.exec(
-                    sqlmodel.select(RespuestaPregunta).where(RespuestaPregunta.resolucion_id == resolucion.id)
-                ).all()
-                for r in respuestas_bd:
-                    for i, p in enumerate(self.preguntas):
-                        if p.id == str(r.pregunta_id):
-                            if r.respuesta_diagrama and not r.respuesta:
-                                self.preguntas[i].respuesta_actual = r.respuesta_diagrama
-                            else:
-                                self.preguntas[i].respuesta_actual = r.respuesta or ""
-                            break
 
-                prueba = session.exec(sqlmodel.select(PruebaEvaluacion).where(PruebaEvaluacion.tarea_id == self.tarea_id)).first()
-                if prueba:
-                    self.es_prueba = True
-                    
+            self.resolucion_id_actual = resolucion.id or -1
+
+            respuestas_bd = session.exec(
+                sqlmodel.select(RespuestaPregunta).where(RespuestaPregunta.resolucion_id == resolucion.id)
+            ).all()
+            for r in respuestas_bd:
+                for i, p in enumerate(self.preguntas):
+                    if p.id == str(r.pregunta_id):
+                        valor = r.respuesta_diagrama if r.respuesta_diagrama and not r.respuesta else (r.respuesta or "")
+                        self.preguntas[i].respuesta_actual = valor
+                        break
+
+            prueba = session.exec(sqlmodel.select(PruebaEvaluacion).where(PruebaEvaluacion.tarea_id == id_tarea_actual)).first()
+            if prueba:
+                self.es_prueba = True
+                tiempo_hasta_fin = (tarea_db.fechaFin - datetime.now()).total_seconds()
+                if resolucion.fechaEntrega:
                     tiempo_transcurrido = (datetime.now() - resolucion.fechaEntrega).total_seconds()
                     restante_por_limite = (prueba.tiempoLimite * 60) - tiempo_transcurrido
-                    restante_por_fecha = (tarea_db.fechaFin - datetime.now()).total_seconds()
-                    restante = min(restante_por_limite, restante_por_fecha)
-                    
-                    if restante <= 0:
-                        self.tiempo_restante_segundos = 0
-                        self.timer_running = False
-                        self.error_carga = "El tiempo de esta prueba ha expirado."
-                        return
-                    else:
-                        self.tiempo_restante_segundos = int(restante)
-                        self.timer_running = True
-                        return ResolverTareaState.tick_timer
                 else:
-                    self.es_prueba = False
+                    restante_por_limite = prueba.tiempoLimite * 60
+                restante = min(restante_por_limite, tiempo_hasta_fin)
+                if restante <= 0:
+                    self.tiempo_restante_segundos = 0
                     self.timer_running = False
+                    self.error_carga = "El tiempo de esta prueba ha expirado."
+                    return
+                self.tiempo_restante_segundos = int(restante)
+                self.timer_running = True
+                return ResolverTareaState.tick_timer
+
+            self.es_prueba = False
+            self.timer_running = False
 
     async def tick_timer(self):
         await asyncio.sleep(1)
@@ -211,10 +201,14 @@ class ResolverTareaState(BaseState):
             print(f"Error en set_respuesta: {e}")
 
     def set_diagrama(self, pregunta_id: str, elements: str):
+        if self.tarea_id == -1 or self.resolucion_id_actual == -1:
+            return
+        if not any(p.id == pregunta_id for p in self.preguntas):
+            return
         self.set_respuesta(pregunta_id, elements)
 
     def finalizar_tarea(self, timeout: bool = False):
-        if not self.usuario_actual or self.tarea_id == -1:
+        if not self.usuario_actual or self.tarea_id == -1 or self.resolucion_id_actual == -1:
             return
 
         with rx.session() as session:
@@ -224,15 +218,14 @@ class ResolverTareaState(BaseState):
 
             resolucion = session.exec(
                 sqlmodel.select(ResolucionTarea).where(
+                    (ResolucionTarea.id == self.resolucion_id_actual) &
                     (ResolucionTarea.tarea_id == self.tarea_id) &
                     (ResolucionTarea.estudiante_id == usuario.id_usuario)
                 )
             ).first()
-
             if not resolucion:
                 return
 
-            
             respuestas_viejas = session.exec(
                 sqlmodel.select(RespuestaPregunta).where(RespuestaPregunta.resolucion_id == resolucion.id)
             ).all()
@@ -240,28 +233,23 @@ class ResolverTareaState(BaseState):
                 session.delete(r)
             session.commit()
 
-            
             for p in self.preguntas:
                 valor = p.respuesta_actual
-                
                 nueva_res = RespuestaPregunta(
                     resolucion_id=resolucion.id,
                     pregunta_id=int(p.id),
-                    calificacion=0.0
+                    calificacion=0.0,
                 )
-                
-                if p.tipo.lower() not in ["desarrollo", "test", "desarrollo ", "test "]:
+                if p.tipo.lower().strip() not in ["desarrollo", "test"]:
                     nueva_res.respuesta_diagrama = valor
                     nueva_res.respuesta = ""
                 else:
                     nueva_res.respuesta = valor
-                    
                 session.add(nueva_res)
 
             resolucion.estado = "Entregado"
             resolucion.fechaEntrega = datetime.now()
-            
-            
+
             asignacion = session.exec(
                 sqlmodel.select(EstudianteTarea).where(
                     (EstudianteTarea.id_tarea == self.tarea_id) &
@@ -271,10 +259,8 @@ class ResolverTareaState(BaseState):
             if asignacion:
                 asignacion.estado = "completado"
                 session.add(asignacion)
-                
-            
+
             from ..models.usuarios import Notificacion
-            
             tarea_db = session.exec(sqlmodel.select(Tarea).where(Tarea.id_tarea == self.tarea_id)).first()
             if tarea_db and tarea_db.docente_id:
                 notif = Notificacion(
@@ -283,16 +269,15 @@ class ResolverTareaState(BaseState):
                     titulo=f"Nueva entrega: {tarea_db.titulo}",
                     mensaje=f"El estudiante {usuario.nombreUsuario} ha entregado la tarea '{tarea_db.titulo}'.",
                     leida=False,
-                    fecha=datetime.now()
+                    fecha=datetime.now(),
                 )
                 session.add(notif)
-                
+
             session.commit()
 
         self.timer_running = False
-        
         msg = "¡Tiempo finalizado! Tus respuestas se han guardado." if timeout else "Tarea enviada correctamente."
         return [
             rx.toast.success(msg, position="bottom-right"),
-            rx.redirect("/mis-tareas-estudiante")
+            rx.redirect("/mis-tareas-estudiante"),
         ]
