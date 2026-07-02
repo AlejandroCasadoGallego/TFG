@@ -1,9 +1,7 @@
 import reflex as rx
 import sqlmodel
-from datetime import datetime
-from typing import List, Dict, Optional
-import asyncio
-import json
+from datetime import datetime, timedelta
+from typing import List
 
 from .base_state import BaseState
 from ..models.tarea import Tarea, Pregunta, Ejercicio, PruebaEvaluacion, EstudianteTarea
@@ -23,6 +21,7 @@ class TareaResolucionUI(rx.Base):
     descripcion: str = ""
     enunciado: str = ""
 
+
 class ResolverTareaState(BaseState):
     tarea_id: int = -1
     resolucion_id_actual: int = -1
@@ -30,37 +29,44 @@ class ResolverTareaState(BaseState):
     tarea_actual: TareaResolucionUI = TareaResolucionUI()
     es_prueba: bool = False
     preguntas: List[PreguntaResolucionUI] = []
-
     tiempo_restante_segundos: int = 0
-    timer_running: bool = False
+    fecha_fin_timer: str = ""
+    respuestas_usuario: dict[str, str] = {}
     error_carga: str = ""
 
     def _limpiar_carga_actual(self):
+        self.tiempo_restante_segundos = 0
+        self.fecha_fin_timer = ""
         self.tarea_id = -1
         self.resolucion_id_actual = -1
         self.estudiante_id_actual = -1
         self.tarea_actual = TareaResolucionUI()
         self.preguntas = []
+        self.respuestas_usuario = {}
         self.es_prueba = False
-        self.timer_running = False
-        self.tiempo_restante_segundos = 0
         self.error_carga = ""
 
     def cargar_tarea(self):
-        self._limpiar_carga_actual()
         id_str = self.router.page.params.get("id_tarea", "")
         if not id_str:
+            self._limpiar_carga_actual()
             self.error_carga = "ID de tarea no proporcionado."
             return
 
         try:
             id_tarea_actual = int(id_str)
         except ValueError:
+            self._limpiar_carga_actual()
             self.error_carga = "ID de tarea inválido."
             return
 
         if not self.usuario_actual:
             return
+
+        if self.tarea_id == id_tarea_actual and self.resolucion_id_actual != -1 and self.preguntas:
+            return
+
+        self._limpiar_carga_actual()
 
         with rx.session() as session:
             usuario = session.exec(sqlmodel.select(Usuario).where(Usuario.nombreUsuario == self.usuario_actual)).first()
@@ -135,12 +141,19 @@ class ResolverTareaState(BaseState):
             respuestas_bd = session.exec(
                 sqlmodel.select(RespuestaPregunta).where(RespuestaPregunta.resolucion_id == resolucion.id)
             ).all()
+            nuevo_dict = {}
+            for p in self.preguntas:
+                nuevo_dict[str(p.id)] = ""
+
             for r in respuestas_bd:
                 for i, p in enumerate(self.preguntas):
                     if p.id == str(r.pregunta_id):
                         valor = r.respuesta_diagrama if r.respuesta_diagrama and not r.respuesta else (r.respuesta or "")
                         self.preguntas[i].respuesta_actual = valor
+                        nuevo_dict[str(p.id)] = str(valor)
                         break
+
+            self.respuestas_usuario = nuevo_dict
 
             prueba = session.exec(sqlmodel.select(PruebaEvaluacion).where(PruebaEvaluacion.tarea_id == id_tarea_actual)).first()
             if prueba:
@@ -153,26 +166,12 @@ class ResolverTareaState(BaseState):
                     restante_por_limite = prueba.tiempoLimite * 60
                 restante = min(restante_por_limite, tiempo_hasta_fin)
                 if restante <= 0:
-                    self.tiempo_restante_segundos = 0
-                    self.timer_running = False
                     self.error_carga = "El tiempo de esta prueba ha expirado."
                     return
                 self.tiempo_restante_segundos = int(restante)
-                self.timer_running = True
-                return ResolverTareaState.tick_timer
-
-            self.es_prueba = False
-            self.timer_running = False
-
-    async def tick_timer(self):
-        await asyncio.sleep(1)
-        if not self.timer_running:
-            return
-        self.tiempo_restante_segundos -= 1
-        if self.tiempo_restante_segundos <= 0:
-            self.timer_running = False
-            return self.finalizar_tarea(timeout=True)
-        return ResolverTareaState.tick_timer
+                self.fecha_fin_timer = (datetime.now() + timedelta(seconds=int(restante))).isoformat()
+            else:
+                self.es_prueba = False
 
     @rx.var
     def tiempo_formateado(self) -> str:
@@ -182,21 +181,24 @@ class ResolverTareaState(BaseState):
 
     def set_respuesta(self, pregunta_id: str, valor: str):
         try:
-            new_preguntas = []
+            nuevo_dict = self.respuestas_usuario.copy()
+            nuevo_dict[str(pregunta_id)] = str(valor)
+            self.respuestas_usuario = nuevo_dict
+            nuevas_preguntas = []
             for p in self.preguntas:
-                if p.id == pregunta_id:
-                    new_preguntas.append(
+                if p.id == str(pregunta_id):
+                    nuevas_preguntas.append(
                         PreguntaResolucionUI(
                             id=p.id,
                             enunciado=p.enunciado,
                             tipo=p.tipo,
                             opciones=list(p.opciones),
-                            respuesta_actual=valor,
+                            respuesta_actual=str(valor),
                         )
                     )
                 else:
-                    new_preguntas.append(p)
-            self.preguntas = new_preguntas
+                    nuevas_preguntas.append(p)
+            self.preguntas = nuevas_preguntas
         except Exception as e:
             print(f"Error en set_respuesta: {e}")
 
@@ -206,6 +208,12 @@ class ResolverTareaState(BaseState):
         if not any(p.id == pregunta_id for p in self.preguntas):
             return
         self.set_respuesta(pregunta_id, elements)
+
+    def finalizar_tarea_con_respuestas(self, respuestas: dict):
+        if isinstance(respuestas, dict):
+            for pregunta_id, valor in respuestas.items():
+                self.set_respuesta(str(pregunta_id), "" if valor is None else str(valor))
+        return self.finalizar_tarea(timeout=False)
 
     def finalizar_tarea(self, timeout: bool = False):
         if not self.usuario_actual or self.tarea_id == -1 or self.resolucion_id_actual == -1:
@@ -234,7 +242,7 @@ class ResolverTareaState(BaseState):
             session.commit()
 
             for p in self.preguntas:
-                valor = p.respuesta_actual
+                valor = self.respuestas_usuario.get(str(p.id), p.respuesta_actual)
                 nueva_res = RespuestaPregunta(
                     resolucion_id=resolucion.id,
                     pregunta_id=int(p.id),
@@ -275,7 +283,6 @@ class ResolverTareaState(BaseState):
 
             session.commit()
 
-        self.timer_running = False
         msg = "¡Tiempo finalizado! Tus respuestas se han guardado." if timeout else "Tarea enviada correctamente."
         return [
             rx.toast.success(msg, position="bottom-right"),

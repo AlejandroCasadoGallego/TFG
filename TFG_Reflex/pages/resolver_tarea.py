@@ -4,6 +4,27 @@ from ..components.diagram_board import diagram_board
 from ..colores import *
 
 
+def recoger_respuestas_visibles_script() -> str:
+    return """
+(() => {
+  const respuestas = {};
+  document.querySelectorAll('[id^="respuesta-texto-"]').forEach((box) => {
+    const preguntaId = box.id.replace('respuesta-texto-', '');
+    const textarea = box.querySelector('textarea');
+    if (!textarea || textarea.getClientRects().length === 0) return;
+    respuestas[preguntaId] = textarea ? textarea.value : '';
+  });
+  document.querySelectorAll('[id^="respuesta-test-"]').forEach((box) => {
+    if (box.getClientRects().length === 0) return;
+    const preguntaId = box.id.replace('respuesta-test-', '');
+    const marcada = box.querySelector('[role="radio"][aria-checked="true"]');
+    respuestas[preguntaId] = marcada ? marcada.getAttribute('value') || '' : '';
+  });
+  return respuestas;
+})()
+"""
+
+
 def locked_header() -> rx.Component:
     return rx.hstack(
         rx.hstack(
@@ -39,7 +60,10 @@ def modal_confirmar_entrega() -> rx.Component:
                 ),
                 rx.button(
                     "Sí, Entregar",
-                    on_click=ResolverTareaState.finalizar_tarea(False),
+                    on_click=rx.call_script(
+                        recoger_respuestas_visibles_script(),
+                        callback=ResolverTareaState.finalizar_tarea_con_respuestas,
+                    ),
                     color_scheme="indigo",
                     cursor="pointer",
                 ),
@@ -68,7 +92,7 @@ def renderizar_pregunta(pregunta: PreguntaResolucionUI) -> rx.Component:
                 rx.box(
                     rx.text_area(
                         placeholder="Escribe tu respuesta detallada aquí...",
-                        value=pregunta.respuesta_actual,
+                        default_value=pregunta.respuesta_actual,
                         on_change=lambda val: ResolverTareaState.set_respuesta(pregunta.id, val),
                         width="100%",
                         min_height="200px",
@@ -80,12 +104,13 @@ def renderizar_pregunta(pregunta: PreguntaResolucionUI) -> rx.Component:
                         "block",
                         "none",
                     ),
+                    id="respuesta-texto-" + pregunta.id,
                     width="100%",
                 ),
                 rx.box(
                     rx.radio(
                         pregunta.opciones,
-                        value=pregunta.respuesta_actual,
+                        default_value=pregunta.respuesta_actual,
                         on_change=lambda val: ResolverTareaState.set_respuesta(pregunta.id, val),
                         direction="column",
                         spacing="3",
@@ -98,6 +123,7 @@ def renderizar_pregunta(pregunta: PreguntaResolucionUI) -> rx.Component:
                         "block",
                         "none",
                     ),
+                    id="respuesta-test-" + pregunta.id,
                     width="100%",
                 ),
                 rx.box(
@@ -190,7 +216,16 @@ def resolver_tarea_page() -> rx.Component:
                     ),
                     rx.text("Tiempo Restante:", weight="bold", color=color_texto_secundario),
                     rx.heading(
-                        ResolverTareaState.tiempo_formateado,
+                        rx.cond(
+                            ResolverTareaState.fecha_fin_timer != "",
+                            rx.moment(
+                                ResolverTareaState.fecha_fin_timer,
+                                duration_from_now=True,
+                                interval=1000,
+                                trim=False,
+                            ),
+                            ResolverTareaState.tiempo_formateado,
+                        ),
                         size="6",
                         color=rx.cond(
                             ResolverTareaState.tiempo_restante_segundos < 60,
